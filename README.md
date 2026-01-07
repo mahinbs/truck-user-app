@@ -1,50 +1,73 @@
-# Welcome to your Expo app 👋
+# TruckFlow - Full Stack Application
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A logistics and shipment management application with both mobile (React Native/Expo) and web (Next.js) implementations.
 
-## Get started
+## 📁 Project Structure
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+truck-app/
+├── app/              # React Native/Expo mobile app
+├── web/              # Next.js web application
+├── components/       # Shared components
+└── constants/        # Shared constants
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🌐 Web Application
 
-## Learn more
+The web application is located in the `/web` directory. See [web/README.md](./web/README.md) for detailed documentation.
 
-To learn more about developing your project with Expo, look at the following resources:
+### Quick Start (Web)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+cd web
+npm install
+npm run dev
+```
 
-## Join the community
+### Deploy Web to Vercel
 
-Join our community of developers creating universal apps.
+1. **From the root directory**, push to GitHub:
+   ```bash
+   git add .
+   git commit -m "Ready for deployment"
+   git push origin main
+   ```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+2. **In Vercel Dashboard**:
+   - Import your repository
+   - Set **Root Directory** to `web`
+   - Deploy
+
+Or use Vercel CLI from the web directory:
+```bash
+cd web
+vercel
+```
+
+## 📱 Mobile Application
+
+The mobile application is built with React Native and Expo. See the main `package.json` for mobile-specific scripts.
+
+## 🔧 Development
+
+### Web Development
+```bash
+cd web
+npm run dev
+```
+
+### Mobile Development
+```bash
+npm start
+```
+
+## 📝 Notes
+
+- The web app uses **Tailwind CSS** for styling
+- The web app is configured for **static export** by default
+- For Vercel deployment, set the root directory to `web`
+- Environment variables should be configured in Vercel dashboard
+
+## 📄 License
+
+This project is private and proprietary.
