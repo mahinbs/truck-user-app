@@ -15,9 +15,11 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { colors, spacing, typography, borderRadius, shadows } from '@/constants/theme';
+import { useAuth } from '@/contexts/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function KYCScreen() {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     gstNumber: '',
     panNumber: '',
@@ -37,13 +39,24 @@ export default function KYCScreen() {
     Alert.alert('Upload Document', `Upload ${docType} functionality will be implemented`);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Navigate based on user role
+      if (user?.role === 'BUSINESS') {
+        router.replace('/(tabs)/dashboard');
+      } else {
+        router.replace('/(driver)/home');
+      }
+    } catch (error) {
+      console.error('KYC submission error:', error);
+      Alert.alert('Error', 'Failed to submit KYC. Please try again.');
+    } finally {
       setLoading(false);
-      router.replace('/(tabs)/dashboard');
-    }, 2000);
+    }
   };
 
   return (

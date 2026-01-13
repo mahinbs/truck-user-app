@@ -1,5 +1,12 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle, TouchableOpacity } from 'react-native';
+import { StyleSheet, ViewStyle, Pressable } from 'react-native';
+import Animated, { 
+  useAnimatedStyle, 
+  useSharedValue, 
+  withSpring,
+  interpolate,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 import { colors, borderRadius, shadows, spacing } from '@/constants/theme';
 
 interface CardProps {
@@ -7,7 +14,8 @@ interface CardProps {
   style?: ViewStyle;
   padding?: number;
   onPress?: () => void;
-  variant?: 'default' | 'elevated' | 'outlined';
+  variant?: 'default' | 'elevated' | 'outlined' | 'glass';
+  disabled?: boolean;
 }
 
 export const Card: React.FC<CardProps> = ({ 
@@ -15,8 +23,36 @@ export const Card: React.FC<CardProps> = ({
   style, 
   padding = spacing.md,
   onPress,
-  variant = 'default'
+  variant = 'default',
+  disabled = false,
 }) => {
+  const scale = useSharedValue(1);
+  const pressed = useSharedValue(0);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: interpolate(pressed.value, [0, 1], [1, 0.95]),
+  }));
+
+  const handlePressIn = () => {
+    if (disabled || !onPress) return;
+    scale.value = withSpring(0.98, {
+      damping: 15,
+      stiffness: 150,
+    });
+    pressed.value = withSpring(1);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const handlePressOut = () => {
+    if (disabled || !onPress) return;
+    scale.value = withSpring(1, {
+      damping: 15,
+      stiffness: 150,
+    });
+    pressed.value = withSpring(0);
+  };
+
   const cardStyle = [
     styles.card,
     styles[`card_${variant}`],
@@ -26,30 +62,36 @@ export const Card: React.FC<CardProps> = ({
 
   if (onPress) {
     return (
-      <TouchableOpacity 
-        style={cardStyle} 
-        onPress={onPress}
-        activeOpacity={0.7}
+      <Pressable
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          onPress();
+        }}
+        disabled={disabled}
       >
-        {children}
-      </TouchableOpacity>
+        <Animated.View style={[cardStyle, animatedStyle]}>
+          {children}
+        </Animated.View>
+      </Pressable>
     );
   }
 
   return (
-    <View style={cardStyle}>
+    <Animated.View style={cardStyle}>
       {children}
-    </View>
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.backgroundCard,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.xl,
   },
   card_default: {
-    ...shadows.sm,
+    ...shadows.md,
   },
   card_elevated: {
     ...shadows.lg,
@@ -57,6 +99,14 @@ const styles = StyleSheet.create({
   card_outlined: {
     borderWidth: 1,
     borderColor: colors.border,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  card_glass: {
+    backgroundColor: colors.whiteTransparentMedium,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    ...shadows.sm,
   },
 });
 

@@ -1,19 +1,24 @@
+import { Badge } from '@/components/ui/Badge';
+import { Card } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
+import { borderRadius, colors, shadows, spacing, typography } from '@/constants/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
+  Dimensions,
   RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
-import { colors, spacing, typography, borderRadius, shadows } from '@/constants/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+const { width } = Dimensions.get('window');
 
 // Mock data
 const allTrips = [
@@ -91,15 +96,35 @@ export default function TripsHistoryScreen() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'in-transit':
-        return <Badge label="In Transit" variant="info" />;
+        return (
+          <View style={styles.statusBadge}>
+            <Ionicons name="time" size={16} color={colors.info} />
+            <Text style={styles.statusBadgeText}>In Transit</Text>
+          </View>
+        );
       case 'delivered':
-        return <Badge label="Delivered" variant="success" />;
+        return (
+          <View style={styles.statusBadgeSuccess}>
+            <Ionicons name="checkmark-circle" size={16} color={colors.success} />
+            <Text style={styles.statusBadgeTextSuccess}>Delivered</Text>
+          </View>
+        );
       case 'pending':
-        return <Badge label="Pending" variant="warning" />;
+        return (
+          <View style={styles.statusBadgeWarning}>
+            <Ionicons name="time" size={16} color={colors.warning} />
+            <Text style={styles.statusBadgeTextWarning}>Pending</Text>
+          </View>
+        );
       case 'cancelled':
-        return <Badge label="Cancelled" variant="error" />;
+        return (
+          <View style={styles.statusBadgeError}>
+            <Ionicons name="close-circle" size={16} color={colors.error} />
+            <Text style={styles.statusBadgeTextError}>Cancelled</Text>
+          </View>
+        );
       default:
-        return <Badge label={status} variant="default" />;
+        return null;
     }
   };
 
@@ -111,161 +136,185 @@ export default function TripsHistoryScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Shipments</Text>
-        <TouchableOpacity style={styles.filterButton}>
-          <Ionicons name="funnel" size={20} color={colors.text} />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+    <View style={styles.container}>
+      <LinearGradient
+        colors={[colors.primaryGradientStart, colors.primaryGradientEnd]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
       >
-        {/* Stats */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statBox}>
-            <Text style={styles.statValue}>{stats.total}</Text>
-            <Text style={styles.statLabel}>Total</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={[styles.statValue, { color: colors.success }]}>
-              {stats.delivered}
-            </Text>
-            <Text style={styles.statLabel}>Delivered</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={[styles.statValue, { color: colors.info }]}>
-              {stats.active}
-            </Text>
-            <Text style={styles.statLabel}>Active</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={[styles.statValue, { color: colors.primary }]}>
-              ₹{(stats.totalSpent / 1000).toFixed(1)}K
-            </Text>
-            <Text style={styles.statLabel}>Total</Text>
-          </View>
+        <View style={[styles.decorCircle, styles.decorCircle1]} />
+      </LinearGradient>
+
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>My Shipments</Text>
         </View>
 
-        {/* Search */}
-        <View style={styles.searchContainer}>
-          <Input
-            placeholder="Search by tracking ID, location..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            icon="search"
-            containerStyle={styles.searchInput}
-          />
-        </View>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
+        >
+          {/* Stats Cards */}
+          <View style={styles.statsGrid}>
+            <View style={styles.statCard}>
+              <LinearGradient
+                colors={[colors.primary, colors.primaryDark]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.statGradient}
+              >
+                <Ionicons name="cube" size={24} color={colors.textWhite} />
+                <Text style={styles.statValue}>{stats.total}</Text>
+                <Text style={styles.statLabel}>Total Trips</Text>
+              </LinearGradient>
+            </View>
 
-        {/* Filter Tabs */}
-        <View style={styles.filterTabs}>
-          {(['all', 'active', 'delivered'] as const).map((status) => (
-            <TouchableOpacity
-              key={status}
-              style={[
-                styles.filterTab,
-                filterStatus === status && styles.filterTabActive,
-              ]}
-              onPress={() => setFilterStatus(status)}
-            >
-              <Text
+            <View style={styles.statCard}>
+              <LinearGradient
+                colors={[colors.success, '#059669']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.statGradient}
+              >
+                <Ionicons name="checkmark-circle" size={24} color={colors.textWhite} />
+                <Text style={styles.statValue}>{stats.delivered}</Text>
+                <Text style={styles.statLabel}>Delivered</Text>
+              </LinearGradient>
+            </View>
+
+            <View style={styles.statCard}>
+              <LinearGradient
+                colors={[colors.info, colors.blueDark]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.statGradient}
+              >
+                <Ionicons name="time" size={24} color={colors.textWhite} />
+                <Text style={styles.statValue}>{stats.active}</Text>
+                <Text style={styles.statLabel}>Active</Text>
+              </LinearGradient>
+            </View>
+          </View>
+
+          {/* Search */}
+          <View style={styles.searchContainer}>
+            <Input
+              placeholder="Search by tracking ID, location..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              icon="search"
+              containerStyle={styles.searchInput}
+            />
+          </View>
+
+          {/* Filter Tabs */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.filterTabs}
+            contentContainerStyle={styles.filterTabsContent}
+          >
+            {(['all', 'active', 'delivered'] as const).map((status) => (
+              <TouchableOpacity
+                key={status}
                 style={[
-                  styles.filterTabText,
-                  filterStatus === status && styles.filterTabTextActive,
+                  styles.filterTab,
+                  filterStatus === status && styles.filterTabActive,
                 ]}
+                onPress={() => {
+                  setFilterStatus(status);
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }}
               >
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+                <Text
+                  style={[
+                    styles.filterTabText,
+                    filterStatus === status && styles.filterTabTextActive,
+                  ]}
+                >
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
 
-        {/* Trips List */}
-        <View style={styles.tripsContainer}>
-          {filteredTrips.length === 0 ? (
-            <Card style={styles.emptyCard}>
-              <Ionicons name="cube-outline" size={64} color={colors.textLight} />
-              <Text style={styles.emptyText}>No shipments found</Text>
-              <Text style={styles.emptySubtext}>
-                Try adjusting your search or filters
-              </Text>
-            </Card>
-          ) : (
-            filteredTrips.map((trip) => (
-              <Card
-                key={trip.id}
-                style={styles.tripCard}
-                onPress={() => router.push(`/(tabs)/trip/${trip.id}`)}
-              >
-                <View style={styles.tripHeader}>
-                  <View style={styles.tripHeaderLeft}>
-                    <Text style={styles.trackingId}>{trip.trackingId}</Text>
-                    {getStatusBadge(trip.status)}
-                  </View>
-                  <TouchableOpacity
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      router.push(`/(tabs)/trip/${trip.id}/payment`);
-                    }}
-                  >
-                    <Ionicons name="receipt" size={20} color={colors.primary} />
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.tripRoute}>
-                  <View style={styles.routePoint}>
-                    <View style={styles.routeDotFrom} />
-                    <View style={styles.routeInfo}>
-                      <Text style={styles.routeLabel}>From</Text>
-                      <Text style={styles.routeLocation}>{trip.from}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.routeConnector} />
-
-                  <View style={styles.routePoint}>
-                    <View style={styles.routeDotTo} />
-                    <View style={styles.routeInfo}>
-                      <Text style={styles.routeLabel}>To</Text>
-                      <Text style={styles.routeLocation}>{trip.to}</Text>
-                    </View>
-                  </View>
-                </View>
-
-                <View style={styles.tripFooter}>
-                  <View style={styles.tripDetail}>
-                    <Ionicons name="cube" size={14} color={colors.textSecondary} />
-                    <Text style={styles.tripDetailText}>{trip.material}</Text>
-                  </View>
-                  <View style={styles.tripDetail}>
-                    <Ionicons name="barbell" size={14} color={colors.textSecondary} />
-                    <Text style={styles.tripDetailText}>{trip.weight}</Text>
-                  </View>
-                  <View style={styles.tripDetail}>
-                    <Ionicons name="calendar" size={14} color={colors.textSecondary} />
-                    <Text style={styles.tripDetailText}>{trip.date}</Text>
-                  </View>
-                </View>
-
-                <View style={styles.priceRow}>
-                  <Text style={styles.priceLabel}>Total Amount</Text>
-                  <Text style={styles.priceValue}>₹{trip.price}</Text>
-                </View>
+          {/* Trips List */}
+          <View style={styles.tripsContainer}>
+            {filteredTrips.length === 0 ? (
+              <Card style={styles.emptyCard}>
+                <Ionicons name="cube-outline" size={64} color={colors.textLight} />
+                <Text style={styles.emptyText}>No shipments found</Text>
+                <Text style={styles.emptySubtext}>
+                  Try adjusting your search or filters
+                </Text>
               </Card>
-            ))
-          )}
-        </View>
+            ) : (
+              filteredTrips.map((trip) => (
+                <Card
+                  key={trip.id}
+                  style={styles.tripCard}
+                  onPress={() => router.push(`/(tabs)/trip/${trip.id}`)}
+                >
+                  <View style={styles.tripHeader}>
+                    <View style={styles.tripHeaderLeft}>
+                      <Text style={styles.trackingId}>{trip.trackingId}</Text>
+                      <Text style={styles.route}>{trip.from} → {trip.to}</Text>
+                    </View>
+                    <View style={styles.statusBadgeContainer}>
+                      {getStatusBadge(trip.status)}
+                    </View>
+                  </View>
 
-        <View style={styles.bottomSpacer} />
-      </ScrollView>
-    </SafeAreaView>
+                  <View style={styles.tripDetails}>
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailLabel}>Material</Text>
+                      <Text style={styles.detailValue}>{trip.material}</Text>
+                    </View>
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailLabel}>Weight</Text>
+                      <Text style={styles.detailValue}>{trip.weight}</Text>
+                    </View>
+                    <View style={styles.divider} />
+                    <View style={styles.detailRow}>
+                      <Text style={styles.totalLabel}>Total Amount</Text>
+                      <Text style={styles.totalValue}>₹{trip.price.toLocaleString()}</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.tripFooter}>
+                    <View style={styles.tripMeta}>
+                      <Ionicons name="calendar" size={14} color={colors.textSecondary} />
+                      <Text style={styles.metaText}>{trip.date}</Text>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.receiptButton}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        router.push(`/(tabs)/trip/${trip.id}/payment`);
+                      }}
+                    >
+                      <Ionicons name="receipt" size={16} color={colors.primary} />
+                      <Text style={styles.receiptText}>Invoice</Text>
+                    </TouchableOpacity>
+                  </View>
+                </Card>
+              ))
+            )}
+          </View>
+
+          <View style={styles.bottomSpacer} />
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -274,55 +323,67 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  headerGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 200,
+    overflow: 'hidden',
+  },
+  decorCircle1: {
+    position: 'absolute',
+    width: width * 0.8,
+    height: width * 0.8,
+    borderRadius: 9999,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    top: -width * 0.4,
+    right: -width * 0.3,
+  },
+  safeArea: {
+    flex: 1,
+  },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    backgroundColor: colors.backgroundCard,
-    ...shadows.sm,
   },
   headerTitle: {
-    fontSize: typography.sizes.xl,
+    fontSize: typography.sizes['2xl'],
     fontWeight: typography.weights.bold,
-    color: colors.text,
-  },
-  filterButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
+    color: colors.textWhite,
   },
   scrollView: {
     flex: 1,
   },
-  statsContainer: {
+  statsGrid: {
     flexDirection: 'row',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
     gap: spacing.sm,
+    marginBottom: spacing.xl,
   },
-  statBox: {
+  statCard: {
     flex: 1,
-    backgroundColor: colors.backgroundCard,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.xl,
+    overflow: 'hidden',
+    ...shadows.lg,
+  },
+  statGradient: {
     padding: spacing.md,
     alignItems: 'center',
-    ...shadows.sm,
+    minHeight: 100,
+    justifyContent: 'center',
   },
   statValue: {
     fontSize: typography.sizes.xl,
     fontWeight: typography.weights.bold,
-    color: colors.text,
-    marginBottom: spacing.xs,
+    color: colors.textWhite,
+    marginTop: spacing.xs,
   },
   statLabel: {
     fontSize: typography.sizes.xs,
-    color: colors.textSecondary,
-    textAlign: 'center',
+    color: colors.textWhite,
+    opacity: 0.9,
+    marginTop: spacing.xs - 2,
   },
   searchContainer: {
     paddingHorizontal: spacing.lg,
@@ -332,17 +393,18 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   filterTabs: {
-    flexDirection: 'row',
+    marginBottom: spacing.md,
+  },
+  filterTabsContent: {
     paddingHorizontal: spacing.lg,
     gap: spacing.sm,
-    marginBottom: spacing.md,
   },
   filterTab: {
     paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.lg,
     borderRadius: borderRadius.full,
     backgroundColor: colors.backgroundCard,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border,
   },
   filterTabActive: {
@@ -351,11 +413,11 @@ const styles = StyleSheet.create({
   },
   filterTabText: {
     fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.medium,
+    fontWeight: typography.weights.semibold,
     color: colors.textSecondary,
   },
   filterTabTextActive: {
-    color: colors.backgroundCard,
+    color: colors.textWhite,
   },
   tripsContainer: {
     paddingHorizontal: spacing.lg,
@@ -366,92 +428,144 @@ const styles = StyleSheet.create({
   tripHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: spacing.md,
+    flexWrap: 'wrap',
+    gap: spacing.xs,
   },
   tripHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
     flex: 1,
+    minWidth: 0,
   },
   trackingId: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.bold,
+    color: colors.text,
+    marginBottom: spacing.xs - 2,
+  },
+  route: {
+    fontSize: typography.sizes.sm,
+    color: colors.textSecondary,
+  },
+  statusBadgeContainer: {
+    flexShrink: 0,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs - 2,
+    backgroundColor: colors.infoLight,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs - 2,
+    borderRadius: borderRadius.full,
+  },
+  statusBadgeText: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+    color: colors.info,
+  },
+  statusBadgeSuccess: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs - 2,
+    backgroundColor: colors.successLight,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs - 2,
+    borderRadius: borderRadius.full,
+  },
+  statusBadgeTextSuccess: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+    color: colors.success,
+  },
+  statusBadgeWarning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs - 2,
+    backgroundColor: colors.warningLight,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs - 2,
+    borderRadius: borderRadius.full,
+  },
+  statusBadgeTextWarning: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+    color: colors.warning,
+  },
+  statusBadgeError: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs - 2,
+    backgroundColor: colors.errorLight,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs - 2,
+    borderRadius: borderRadius.full,
+  },
+  statusBadgeTextError: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+    color: colors.error,
+  },
+  tripDetails: {
+    marginBottom: spacing.md,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: spacing.xs,
+  },
+  detailLabel: {
+    fontSize: typography.sizes.sm,
+    color: colors.textSecondary,
+  },
+  detailValue: {
+    fontSize: typography.sizes.sm,
+    color: colors.text,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: spacing.sm,
+  },
+  totalLabel: {
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
     color: colors.text,
   },
-  tripRoute: {
-    marginBottom: spacing.md,
-  },
-  routePoint: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  routeDotFrom: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.primary,
-    marginTop: 4,
-  },
-  routeDotTo: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.success,
-    marginTop: 4,
-  },
-  routeConnector: {
-    width: 2,
-    height: 20,
-    backgroundColor: colors.border,
-    marginLeft: 4,
-    marginVertical: spacing.xs,
-  },
-  routeInfo: {
-    marginLeft: spacing.md,
-    flex: 1,
-  },
-  routeLabel: {
-    fontSize: typography.sizes.xs,
-    color: colors.textSecondary,
-    marginBottom: 2,
-  },
-  routeLocation: {
-    fontSize: typography.sizes.sm,
-    color: colors.text,
-    fontWeight: typography.weights.medium,
+  totalValue: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.bold,
+    color: colors.primary,
   },
   tripFooter: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
-    marginBottom: spacing.md,
-  },
-  tripDetail: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  tripDetailText: {
-    fontSize: typography.sizes.xs,
-    color: colors.textSecondary,
-  },
-  priceRow: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: spacing.md,
+    paddingTop: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
-  priceLabel: {
-    fontSize: typography.sizes.sm,
+  tripMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs - 2,
+  },
+  metaText: {
+    fontSize: typography.sizes.xs,
     color: colors.textSecondary,
   },
-  priceValue: {
-    fontSize: typography.sizes.lg,
-    fontWeight: typography.weights.bold,
+  receiptButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs - 2,
+    backgroundColor: colors.primaryTransparent,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+  },
+  receiptText: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
     color: colors.primary,
   },
   emptyCard: {
