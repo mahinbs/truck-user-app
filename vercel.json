@@ -4,6 +4,7 @@
   "devCommand": "npm run web",
   "installCommand": "npm install",
   "framework": null,
+  "rootDirectory": ".",
   "rewrites": [
     {
       "source": "/(.*)",
