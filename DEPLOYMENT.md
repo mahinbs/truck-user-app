@@ -38,11 +38,14 @@ The build output will be in the `dist` directory.
    - Import your Git repository
    - Vercel will auto-detect the configuration from `vercel.json`
 
-3. **Configure Build Settings** (if needed)
-   - Framework Preset: Other
+3. **Configure Build Settings** (IMPORTANT)
+   - Framework Preset: **Other**
+   - **Root Directory**: Leave empty or set to `.` (configure in dashboard, NOT in vercel.json)
    - Build Command: `npm run build:web`
    - Output Directory: `dist`
    - Install Command: `npm install`
+   
+   ⚠️ **Note**: Root Directory must be set in Vercel Dashboard → Settings → General, NOT in vercel.json
 
 4. **Deploy**
    - Click "Deploy"
