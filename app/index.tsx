@@ -5,9 +5,9 @@ export default function Index() {
   const router = useRouter();
 
   useEffect(() => {
-    // Wait for navigation context to be ready before redirecting
+    // Wait for navigation context to be ready before redirecting to splash
     const timer = setTimeout(() => {
-      router.replace("/(auth)/login");
+      router.replace("/splash");
     }, 100);
 
     return () => clearTimeout(timer);

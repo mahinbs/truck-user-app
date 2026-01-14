@@ -1,17 +1,17 @@
-import { BusinessHeader } from '@/components/ui/BusinessHeader';
-import { colors, shadows, spacing, typography } from '@/constants/theme';
+import { DriverHeader } from '@/components/ui/DriverHeader';
+import { colors, shadows, typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
 
-export default function TabsLayout() {
+export default function DriverTabsLayout() {
   return (
     <Tabs
       screenOptions={({ route }) => {
         const getTitle = () => {
-          if (route.name === 'dashboard') return 'Dashboard';
-          if (route.name === 'trips') return 'My Shipments';
-          if (route.name === 'payments') return 'Payments & Invoices';
+          if (route.name === 'home') return 'Driver Home';
+          if (route.name === 'trips') return 'My Trips';
+          if (route.name === 'earnings') return 'My Earnings';
           if (route.name === 'profile') return 'My Profile';
           return route.name;
         };
@@ -19,14 +19,10 @@ export default function TabsLayout() {
         return {
           headerShown: true,
           header: () => (
-            <BusinessHeader
+            <DriverHeader
               title={getTitle()}
               showBack={false}
-              notificationCount={3}
-              onSearchPress={() => {
-                // TODO: Navigate to search screen
-                console.log('Search pressed');
-              }}
+              notificationCount={2}
             />
           ),
           headerStyle: {
@@ -39,7 +35,7 @@ export default function TabsLayout() {
           backgroundColor: colors.backgroundCard,
           borderTopWidth: 0,
           height: Platform.OS === 'ios' ? 88 : 65,
-          paddingBottom: Platform.OS === 'ios' ? spacing.lg : spacing.sm,
+     
           ...shadows.lg,
           elevation: 20,
         },
@@ -55,13 +51,13 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="dashboard"
+        name="home"
         options={{
-          title: 'Dashboard',
-          headerTitle: 'Dashboard',
+          title: 'Home',
+          headerTitle: 'Driver Home',
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
-              name={focused ? "grid" : "grid-outline"} 
+              name={focused ? "home" : "home-outline"} 
               size={size + 2} 
               color={color} 
             />
@@ -71,11 +67,11 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="trips"
         options={{
-          title: 'Shipments',
-          headerTitle: 'My Shipments',
+          title: 'My Trips',
+          headerTitle: 'My Trips',
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
-              name={focused ? "cube" : "cube-outline"} 
+              name={focused ? "car-sport" : "car-sport-outline"} 
               size={size + 2} 
               color={color} 
             />
@@ -83,10 +79,10 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="payments"
+        name="earnings"
         options={{
-          title: 'Payments',
-          headerTitle: 'Payments & Invoices',
+          title: 'Earnings',
+          headerTitle: 'My Earnings',
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={focused ? "wallet" : "wallet-outline"} 
@@ -112,25 +108,25 @@ export default function TabsLayout() {
       />
       {/* Hide these routes from tab bar */}
       <Tabs.Screen
-        name="book-trip"
+        name="trip-request"
         options={{
           href: null,
         }}
       />
       <Tabs.Screen
-        name="trip"
+        name="active-trip"
         options={{
           href: null,
         }}
       />
       <Tabs.Screen
-        name="track"
+        name="delay-reason"
         options={{
           href: null,
         }}
       />
       <Tabs.Screen
-        name="history"
+        name="delivery-confirmation"
         options={{
           href: null,
         }}

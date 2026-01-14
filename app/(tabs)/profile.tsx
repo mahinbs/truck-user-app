@@ -1,23 +1,30 @@
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Divider } from '@/components/ui/Divider';
+import { borderRadius, colors, shadows, spacing, typography } from '@/constants/theme';
+import { useAuth } from '@/contexts/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Switch,
   Alert,
+  Dimensions,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Divider } from '@/components/ui/Divider';
-import { colors, spacing, typography, borderRadius, shadows } from '@/constants/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+const { width } = Dimensions.get('window');
+
 export default function ProfileScreen() {
+  const { logout } = useAuth();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
@@ -40,19 +47,42 @@ export default function ProfileScreen() {
     rating: 4.8,
   };
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: () => router.replace('/(auth)/login'),
-        },
-      ]
-    );
+  const handleLogout = async () => {
+    if (Platform.OS === 'web') {
+      // Use window.confirm for web
+      const confirmed = window.confirm('Are you sure you want to logout?');
+      if (confirmed) {
+        try {
+          await logout();
+          router.replace('/(auth)/role-selection');
+        } catch (error) {
+          console.error('Logout error:', error);
+          window.alert('Failed to logout. Please try again.');
+        }
+      }
+    } else {
+      // Use Alert.alert for native platforms
+      Alert.alert(
+        'Logout',
+        'Are you sure you want to logout?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Logout',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await logout();
+                router.replace('/(auth)/role-selection');
+              } catch (error) {
+                console.error('Logout error:', error);
+                Alert.alert('Error', 'Failed to logout. Please try again.');
+              }
+            },
+          },
+        ]
+      );
+    }
   };
 
   const handleEditProfile = () => {
@@ -92,236 +122,215 @@ export default function ProfileScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profile</Text>
-        <TouchableOpacity style={styles.settingsButton}>
-          <Ionicons name="settings" size={24} color={colors.text} />
-        </TouchableOpacity>
-      </View>
+    <View style={styles.container}>
+      <LinearGradient
+        colors={[colors.primaryGradientStart, colors.primaryGradientEnd]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <View style={[styles.decorCircle, styles.decorCircle1]} />
+      </LinearGradient>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Profile Card */}
-        <Card style={styles.profileCard}>
-          <View style={styles.profileHeader}>
-            <View style={styles.avatarContainer}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>
-                  {userData.name.split(' ').map((n) => n[0]).join('')}
-                </Text>
-              </View>
-              {userData.verified && (
-                <View style={styles.verifiedBadge}>
-                  <Ionicons name="checkmark-circle" size={24} color={colors.success} />
-                </View>
-              )}
-            </View>
-
-            <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>{userData.name}</Text>
-              <Text style={styles.profileEmail}>{userData.email}</Text>
-              <Text style={styles.memberSince}>
-                Member since {userData.memberSince}
-              </Text>
-            </View>
-
-            <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
-              <Ionicons name="create" size={20} color={colors.primary} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Stats */}
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{stats.totalShipments}</Text>
-              <Text style={styles.statLabel}>Shipments</Text>
-            </View>
-            <Divider vertical style={styles.verticalDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{stats.activeShipments}</Text>
-              <Text style={styles.statLabel}>Active</Text>
-            </View>
-            <Divider vertical style={styles.verticalDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>
-                ₹{(stats.totalSpent / 1000).toFixed(1)}K
-              </Text>
-              <Text style={styles.statLabel}>Spent</Text>
-            </View>
-            <Divider vertical style={styles.verticalDivider} />
-            <View style={styles.statItem}>
-              <View style={styles.ratingRow}>
-                <Ionicons name="star" size={16} color={colors.warning} />
-                <Text style={styles.statValue}>{stats.rating}</Text>
-              </View>
-              <Text style={styles.statLabel}>Rating</Text>
-            </View>
-          </View>
-        </Card>
-
-        {/* Business Details */}
-        <Card style={styles.section}>
-          <Text style={styles.sectionTitle}>Business Information</Text>
-
-          <View style={styles.detailRow}>
-            <Ionicons name="business" size={18} color={colors.textSecondary} />
-            <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>Company Name</Text>
-              <Text style={styles.detailValue}>{userData.company}</Text>
-            </View>
-          </View>
-
-          <View style={styles.detailRow}>
-            <Ionicons name="document-text" size={18} color={colors.textSecondary} />
-            <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>GST Number</Text>
-              <Text style={styles.detailValue}>{userData.gst}</Text>
-            </View>
-          </View>
-
-          <View style={styles.detailRow}>
-            <Ionicons name="call" size={18} color={colors.textSecondary} />
-            <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>Phone Number</Text>
-              <Text style={styles.detailValue}>{userData.phone}</Text>
-            </View>
-          </View>
-        </Card>
-
-        {/* Account Management */}
-        <Card style={styles.section}>
-          <Text style={styles.sectionTitle}>Account Management</Text>
-
-          <MenuItem
-            icon="wallet"
-            title="Payment Methods"
-            subtitle="Manage your payment options"
-            onPress={() => Alert.alert('Payment Methods', 'Coming soon')}
-          />
-
-          <MenuItem
-            icon="location"
-            title="Saved Addresses"
-            subtitle="Manage pickup & delivery locations"
-            onPress={() => Alert.alert('Saved Addresses', 'Coming soon')}
-          />
-
-          <MenuItem
-            icon="document"
-            title="Documents"
-            subtitle="GST, PAN, and other documents"
-            onPress={() => Alert.alert('Documents', 'Coming soon')}
-          />
-
-          <MenuItem
-            icon="shield-checkmark"
-            title="KYC Verification"
-            subtitle="Verified business account"
-            rightElement={<Badge label="Verified" variant="success" />}
-          />
-        </Card>
-
-        {/* Notifications */}
-        <Card style={styles.section}>
-          <Text style={styles.sectionTitle}>Notifications</Text>
-
-          <MenuItem
-            icon="notifications"
-            title="Push Notifications"
-            subtitle="Receive updates about your shipments"
-            rightElement={
-              <Switch
-                value={notificationsEnabled}
-                onValueChange={setNotificationsEnabled}
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor={colors.backgroundCard}
-              />
-            }
-          />
-
-          <MenuItem
-            icon="mail"
-            title="Email Notifications"
-            subtitle="Get shipment updates via email"
-            rightElement={
-              <Switch
-                value={emailNotifications}
-                onValueChange={setEmailNotifications}
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor={colors.backgroundCard}
-              />
-            }
-          />
-
-          <MenuItem
-            icon="chatbubbles"
-            title="SMS Notifications"
-            subtitle="Receive SMS for important updates"
-            rightElement={
-              <Switch
-                value={smsNotifications}
-                onValueChange={setSmsNotifications}
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor={colors.backgroundCard}
-              />
-            }
-          />
-        </Card>
-
-        {/* Support */}
-        <Card style={styles.section}>
-          <Text style={styles.sectionTitle}>Support & Information</Text>
-
-          <MenuItem
-            icon="help-circle"
-            title="Help Center"
-            subtitle="FAQs and support"
-            onPress={() => Alert.alert('Help Center', 'Coming soon')}
-          />
-
-          <MenuItem
-            icon="chatbox"
-            title="Contact Support"
-            subtitle="Get help from our team"
-            onPress={() => Alert.alert('Contact Support', 'Coming soon')}
-          />
-
-          <MenuItem
-            icon="document-text"
-            title="Terms & Conditions"
-            onPress={() => Alert.alert('Terms & Conditions', 'Coming soon')}
-          />
-
-          <MenuItem
-            icon="shield"
-            title="Privacy Policy"
-            onPress={() => Alert.alert('Privacy Policy', 'Coming soon')}
-          />
-
-          <MenuItem
-            icon="information-circle"
-            title="About"
-            subtitle="Version 1.0.0"
-            onPress={() => Alert.alert('About', 'TruckFlow v1.0.0')}
-          />
-        </Card>
-
-        {/* Logout Button */}
-        <View style={styles.logoutContainer}>
-          <Button
-            title="Logout"
-            onPress={handleLogout}
-            variant="outline"
-            icon="log-out"
-            fullWidth
-            style={styles.logoutButton}
-          />
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>My Profile</Text>
         </View>
 
-        <View style={styles.bottomSpacer} />
-      </ScrollView>
-    </SafeAreaView>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          {/* Profile Card */}
+          <Card style={styles.profileCard}>
+            <View style={styles.profileHeader}>
+              <View style={styles.avatarContainer}>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>
+                    {userData.name.split(' ').map((n) => n[0]).join('')}
+                  </Text>
+                </View>
+                {userData.verified && (
+                  <View style={styles.verifiedBadge}>
+                    <Ionicons name="checkmark-circle" size={24} color={colors.success} />
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.profileInfo}>
+                <Text style={styles.profileName}>{userData.name}</Text>
+                <Text style={styles.profileEmail}>{userData.email}</Text>
+                <Text style={styles.memberSince}>
+                  Member since {userData.memberSince}
+                </Text>
+              </View>
+
+              <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
+                <Ionicons name="create" size={20} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
+          </Card>
+
+          {/* Business Details */}
+          <Card style={styles.section}>
+            <Text style={styles.sectionTitle}>Business Information</Text>
+
+            <View style={styles.detailRow}>
+              <Ionicons name="business" size={18} color={colors.textSecondary} />
+              <View style={styles.detailContent}>
+                <Text style={styles.detailLabel}>Company Name</Text>
+                <Text style={styles.detailValue}>{userData.company}</Text>
+              </View>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Ionicons name="document-text" size={18} color={colors.textSecondary} />
+              <View style={styles.detailContent}>
+                <Text style={styles.detailLabel}>GST Number</Text>
+                <Text style={styles.detailValue}>{userData.gst}</Text>
+              </View>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Ionicons name="call" size={18} color={colors.textSecondary} />
+              <View style={styles.detailContent}>
+                <Text style={styles.detailLabel}>Phone Number</Text>
+                <Text style={styles.detailValue}>{userData.phone}</Text>
+              </View>
+            </View>
+          </Card>
+
+          {/* Account Management */}
+          <Card style={styles.section}>
+            <Text style={styles.sectionTitle}>Account Management</Text>
+
+            <MenuItem
+              icon="wallet"
+              title="Payment Methods"
+              subtitle="Manage your payment options"
+              onPress={() => Alert.alert('Payment Methods', 'Coming soon')}
+            />
+
+            <MenuItem
+              icon="location"
+              title="Saved Addresses"
+              subtitle="Manage pickup & delivery locations"
+              onPress={() => Alert.alert('Saved Addresses', 'Coming soon')}
+            />
+
+            <MenuItem
+              icon="document"
+              title="Documents"
+              subtitle="GST, PAN, and other documents"
+              onPress={() => Alert.alert('Documents', 'Coming soon')}
+            />
+
+            <MenuItem
+              icon="shield-checkmark"
+              title="KYC Verification"
+              subtitle="Verified business account"
+              rightElement={<Badge label="Verified" variant="success" />}
+            />
+          </Card>
+
+          {/* Notifications */}
+          <Card style={styles.section}>
+            <Text style={styles.sectionTitle}>Notifications</Text>
+
+            <MenuItem
+              icon="notifications"
+              title="Push Notifications"
+              subtitle="Receive updates about your shipments"
+              rightElement={
+                <Switch
+                  value={notificationsEnabled}
+                  onValueChange={setNotificationsEnabled}
+                  trackColor={{ false: colors.border, true: colors.primary }}
+                  thumbColor={colors.backgroundCard}
+                />
+              }
+            />
+
+            <MenuItem
+              icon="mail"
+              title="Email Notifications"
+              subtitle="Get shipment updates via email"
+              rightElement={
+                <Switch
+                  value={emailNotifications}
+                  onValueChange={setEmailNotifications}
+                  trackColor={{ false: colors.border, true: colors.primary }}
+                  thumbColor={colors.backgroundCard}
+                />
+              }
+            />
+
+            <MenuItem
+              icon="chatbubbles"
+              title="SMS Notifications"
+              subtitle="Receive SMS for important updates"
+              rightElement={
+                <Switch
+                  value={smsNotifications}
+                  onValueChange={setSmsNotifications}
+                  trackColor={{ false: colors.border, true: colors.primary }}
+                  thumbColor={colors.backgroundCard}
+                />
+              }
+            />
+          </Card>
+
+          {/* Support */}
+          <Card style={styles.section}>
+            <Text style={styles.sectionTitle}>Support & Information</Text>
+
+            <MenuItem
+              icon="help-circle"
+              title="Help Center"
+              subtitle="FAQs and support"
+              onPress={() => Alert.alert('Help Center', 'Coming soon')}
+            />
+
+            <MenuItem
+              icon="chatbox"
+              title="Contact Support"
+              subtitle="Get help from our team"
+              onPress={() => Alert.alert('Contact Support', 'Coming soon')}
+            />
+
+            <MenuItem
+              icon="document-text"
+              title="Terms & Conditions"
+              onPress={() => Alert.alert('Terms & Conditions', 'Coming soon')}
+            />
+
+            <MenuItem
+              icon="shield"
+              title="Privacy Policy"
+              onPress={() => Alert.alert('Privacy Policy', 'Coming soon')}
+            />
+
+            <MenuItem
+              icon="information-circle"
+              title="About"
+              subtitle="Version 1.0.0"
+              onPress={() => Alert.alert('About', 'TruckFlow v1.0.0')}
+            />
+          </Card>
+
+          {/* Logout Button */}
+          <View style={styles.logoutContainer}>
+            <Button
+              title="Logout"
+              onPress={handleLogout}
+              variant="outline"
+              icon="log-out"
+              fullWidth
+              style={styles.logoutButton}
+            />
+          </View>
+
+          <View style={styles.bottomSpacer} />
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -330,38 +339,45 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  headerGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 200,
+    overflow: 'hidden',
+  },
+  decorCircle1: {
+    position: 'absolute',
+    width: width * 0.8,
+    height: width * 0.8,
+    borderRadius: 9999,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    top: -width * 0.4,
+    right: -width * 0.3,
+  },
+  safeArea: {
+    flex: 1,
+  },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    backgroundColor: colors.backgroundCard,
-    ...shadows.sm,
   },
   headerTitle: {
-    fontSize: typography.sizes.xl,
+    fontSize: typography.sizes['2xl'],
     fontWeight: typography.weights.bold,
-    color: colors.text,
-  },
-  settingsButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
+    color: colors.textWhite,
   },
   scrollView: {
     flex: 1,
   },
   profileCard: {
-    margin: spacing.lg,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
   },
   profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.lg,
   },
   avatarContainer: {
     position: 'relative',
@@ -412,36 +428,6 @@ const styles = StyleSheet.create({
     backgroundColor: `${colors.primary}15`,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: typography.sizes.lg,
-    fontWeight: typography.weights.bold,
-    color: colors.text,
-    marginBottom: spacing.xs,
-  },
-  statLabel: {
-    fontSize: typography.sizes.xs,
-    color: colors.textSecondary,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  verticalDivider: {
-    height: 30,
-    marginVertical: 0,
   },
   section: {
     marginHorizontal: spacing.lg,
@@ -517,4 +503,3 @@ const styles = StyleSheet.create({
     height: 80,
   },
 });
-

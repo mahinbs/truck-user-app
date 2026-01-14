@@ -175,9 +175,11 @@ export default function SignupScreen() {
             title="Create Account"
             onPress={handleSignup}
             loading={loading}
+            variant="gradient"
             icon="arrow-forward"
             iconPosition="right"
             fullWidth
+            size="md"
             style={styles.signupButton}
           />
 

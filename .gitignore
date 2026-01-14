@@ -6,6 +6,7 @@ node_modules/
 # Expo
 .expo/
 dist/
+web/
 web-build/
 expo-env.d.ts
 
@@ -42,14 +43,6 @@ app-example
 # generated native folders
 /ios
 /android
-
-# Web/Next.js specific
-web/.next/
-web/out/
-web/.vercel
-web/node_modules/
-web/.env*.local
-web/next-env.d.ts
 
 # IDE
 .vscode/
