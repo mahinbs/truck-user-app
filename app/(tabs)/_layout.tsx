@@ -1,5 +1,5 @@
 import { BusinessHeader } from '@/components/ui/BusinessHeader';
-import { colors, shadows, spacing, typography } from '@/constants/theme';
+import { colors, shadows, typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
@@ -22,6 +22,8 @@ export default function TabsLayout() {
             <BusinessHeader
               title={getTitle()}
               showBack={false}
+              showGreeting={route.name === 'dashboard'}
+              userName={route.name === 'dashboard' ? 'Alex Morgan' : undefined}
               notificationCount={3}
               onSearchPress={() => {
                 // TODO: Navigate to search screen
@@ -38,18 +40,21 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: colors.backgroundCard,
           borderTopWidth: 0,
-          height: Platform.OS === 'ios' ? 88 : 65,
-          paddingBottom: Platform.OS === 'ios' ? spacing.lg : spacing.sm,
+          height: Platform.OS === 'ios' ? 88 : 72,
           ...shadows.lg,
           elevation: 20,
         },
         tabBarLabelStyle: {
           fontSize: typography.sizes.xs,
           fontWeight: typography.weights.semibold,
-          marginTop: 4,
+          marginTop: 2,
+          marginBottom: 0,
         },
         tabBarIconStyle: {
-          marginTop: 4,
+          marginTop: 2,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 4,
         },
         };
       }}
@@ -62,7 +67,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={focused ? "grid" : "grid-outline"} 
-              size={size + 2} 
+              size={size} 
               color={color} 
             />
           ),
@@ -76,7 +81,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={focused ? "cube" : "cube-outline"} 
-              size={size + 2} 
+              size={size} 
               color={color} 
             />
           ),
@@ -90,7 +95,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={focused ? "wallet" : "wallet-outline"} 
-              size={size + 2} 
+              size={size} 
               color={color} 
             />
           ),
@@ -104,7 +109,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={focused ? "person-circle" : "person-circle-outline"} 
-              size={size + 2} 
+              size={size} 
               color={color} 
             />
           ),

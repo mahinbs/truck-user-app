@@ -1,8 +1,7 @@
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Divider } from '@/components/ui/Divider';
-import { borderRadius, colors, shadows, spacing, typography } from '@/constants/theme';
+import { colors, shadows, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -129,14 +128,10 @@ export default function ProfileScreen() {
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
       >
-        <View style={[styles.decorCircle, styles.decorCircle1]} />
+        <View style={styles.decorCircle1} />
       </LinearGradient>
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>My Profile</Text>
-        </View>
-
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {/* Profile Card */}
           <Card style={styles.profileCard}>
@@ -336,6 +331,7 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    paddingTop: spacing.sm,
     flex: 1,
     backgroundColor: colors.background,
   },
@@ -344,7 +340,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 200,
+    height: 180,
     overflow: 'hidden',
   },
   decorCircle1: {
@@ -374,6 +370,7 @@ const styles = StyleSheet.create({
   profileCard: {
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
+    ...shadows.md,
   },
   profileHeader: {
     flexDirection: 'row',
@@ -432,6 +429,7 @@ const styles = StyleSheet.create({
   section: {
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
+    ...shadows.sm,
   },
   sectionTitle: {
     fontSize: typography.sizes.lg,

@@ -10,6 +10,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 interface DriverHeaderProps {
   title: string;
   showBack?: boolean;
+  showGreeting?: boolean;
+  userName?: string;
+  subtitle?: string;
   notificationCount?: number;
   onNotificationPress?: () => void;
   onSOSPress?: () => void;
@@ -19,6 +22,9 @@ interface DriverHeaderProps {
 export const DriverHeader: React.FC<DriverHeaderProps> = ({
   title,
   showBack = false,
+  showGreeting = false,
+  userName = '',
+  subtitle = '',
   notificationCount = 0,
   onNotificationPress,
   onSOSPress,
@@ -82,13 +88,20 @@ export const DriverHeader: React.FC<DriverHeaderProps> = ({
                 <Ionicons name="arrow-back" size={24} color={colors.textWhite} />
               </TouchableOpacity>
             ) : (
-              <View style={styles.logoContainer}>
-                <View style={styles.logo}>
-                  <Ionicons name="car-sport" size={28} color={colors.textWhite} />
-                </View>
-                <Text style={styles.logoText}>Driver</Text>
+              <View style={styles.logo}>
+                <Ionicons name="car-sport" size={28} color={colors.textWhite} />
               </View>
             )}
+            <View style={styles.titleBlock}>
+              {showGreeting ? (
+                <>
+                  <Text style={styles.greetingText} numberOfLines={1}>Hello, {userName || 'Driver'}!</Text>
+                  {subtitle ? <Text style={styles.greetingSubtitle} numberOfLines={1}>{subtitle}</Text> : null}
+                </>
+              ) : (
+                <Text style={styles.headerTitle} numberOfLines={1}>{title}</Text>
+              )}
+            </View>
           </View>
 
           {/* Right Section - Actions */}
@@ -151,6 +164,29 @@ const styles = StyleSheet.create({
     flex: 2,
     flexDirection: 'row',
     alignItems: 'center',
+    minWidth: 0,
+  },
+  titleBlock: {
+    flex: 1,
+    minWidth: 0,
+    marginLeft: spacing.sm,
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: typography.sizes.lg,
+    fontWeight: typography.weights.bold,
+    color: colors.textWhite,
+  },
+  greetingText: {
+    fontSize: typography.sizes.lg,
+    fontWeight: typography.weights.bold,
+    color: colors.textWhite,
+  },
+  greetingSubtitle: {
+    fontSize: typography.sizes.sm,
+    color: colors.textWhite,
+    opacity: 0.9,
+    marginTop: 2,
   },
   backButton: {
     width: 40,
@@ -160,11 +196,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
   logo: {
     width: 40,
     height: 40,
@@ -172,12 +203,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  logoText: {
-    fontSize: typography.sizes.lg,
-    fontWeight: typography.weights.bold,
-    color: colors.textWhite,
-    letterSpacing: 0.5,
   },
   rightSection: {
     flex: 1,

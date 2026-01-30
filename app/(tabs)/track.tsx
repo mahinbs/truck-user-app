@@ -167,6 +167,7 @@ export default function TrackScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    paddingTop: spacing.sm,
     flex: 1,
     backgroundColor: colors.background,
   },
@@ -177,7 +178,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     backgroundColor: colors.backgroundCard,
-    ...shadows.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   backButton: {
     width: 40,
@@ -231,6 +233,7 @@ const styles = StyleSheet.create({
   },
   searchCard: {
     marginBottom: spacing.lg,
+    ...shadows.md,
   },
   trackingInput: {
     marginBottom: spacing.md,
@@ -278,6 +281,7 @@ const styles = StyleSheet.create({
   },
   recentCard: {
     marginBottom: spacing.md,
+    ...shadows.sm,
   },
   recentCardContent: {
     flexDirection: 'row',

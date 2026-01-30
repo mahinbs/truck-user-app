@@ -1,18 +1,17 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Dimensions,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Card } from '@/components/ui/Card';
+import { borderRadius, colors, shadows, spacing, typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Card } from '@/components/ui/Card';
-import { StatusChip } from '@/components/ui/StatusChip';
-import { colors, spacing, typography, borderRadius, shadows } from '@/constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useState } from 'react';
+import {
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
@@ -80,14 +79,10 @@ export default function PaymentsScreen() {
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
       >
-        <View style={[styles.decorCircle, styles.decorCircle1]} />
+        <View style={styles.decorCircle1} />
       </LinearGradient>
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Payments & Invoices</Text>
-        </View>
-
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {/* Stats Cards */}
           <View style={styles.statsGrid}>
@@ -229,6 +224,7 @@ export default function PaymentsScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    paddingTop: spacing.sm,
     flex: 1,
     backgroundColor: colors.background,
   },
@@ -237,7 +233,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 200,
+    height: 180,
     overflow: 'hidden',
   },
   decorCircle1: {
@@ -266,20 +262,22 @@ const styles = StyleSheet.create({
   },
   statsGrid: {
     flexDirection: 'row',
+    alignItems: 'stretch',
     paddingHorizontal: spacing.lg,
     gap: spacing.sm,
     marginBottom: spacing.xl,
   },
   statCard: {
     flex: 1,
+    alignSelf: 'stretch',
     borderRadius: borderRadius.xl,
     overflow: 'hidden',
     ...shadows.lg,
   },
   statGradient: {
+    height: 110,
     padding: spacing.md,
     alignItems: 'center',
-    minHeight: 100,
     justifyContent: 'center',
   },
   statValue: {
@@ -326,6 +324,7 @@ const styles = StyleSheet.create({
   },
   paymentCard: {
     marginBottom: spacing.md,
+    ...shadows.md,
   },
   paymentHeader: {
     flexDirection: 'row',

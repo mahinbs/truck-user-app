@@ -1,10 +1,9 @@
-import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { borderRadius, colors, shadows, spacing, typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -143,14 +142,10 @@ export default function TripsHistoryScreen() {
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
       >
-        <View style={[styles.decorCircle, styles.decorCircle1]} />
+        <View style={styles.decorCircle1} />
       </LinearGradient>
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>My Shipments</Text>
-        </View>
-
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
@@ -320,6 +315,7 @@ export default function TripsHistoryScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    paddingTop: spacing.sm,
     flex: 1,
     backgroundColor: colors.background,
   },
@@ -328,7 +324,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 200,
+    height: 180,
     overflow: 'hidden',
   },
   decorCircle1: {
@@ -357,20 +353,22 @@ const styles = StyleSheet.create({
   },
   statsGrid: {
     flexDirection: 'row',
+    alignItems: 'stretch',
     paddingHorizontal: spacing.lg,
     gap: spacing.sm,
     marginBottom: spacing.xl,
   },
   statCard: {
     flex: 1,
+    alignSelf: 'stretch',
     borderRadius: borderRadius.xl,
     overflow: 'hidden',
     ...shadows.lg,
   },
   statGradient: {
+    height: 110,
     padding: spacing.md,
     alignItems: 'center',
-    minHeight: 100,
     justifyContent: 'center',
   },
   statValue: {
@@ -424,6 +422,7 @@ const styles = StyleSheet.create({
   },
   tripCard: {
     marginBottom: spacing.md,
+    ...shadows.md,
   },
   tripHeader: {
     flexDirection: 'row',

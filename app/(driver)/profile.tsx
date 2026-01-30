@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { colors, spacing, typography } from '@/constants/theme';
+import { borderRadius, colors, shadows, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -113,6 +113,7 @@ export default function DriverProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { 
+    paddingTop: spacing.sm,
     flex: 1, 
     backgroundColor: colors.background 
   },
@@ -121,10 +122,16 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: spacing.xxl,
+    paddingTop: spacing.sm,
   },
   profileHeader: { 
     alignItems: 'center', 
-    paddingVertical: spacing.xl 
+    paddingVertical: spacing.xl,
+    backgroundColor: colors.backgroundCard,
+    marginBottom: spacing.md,
+    marginHorizontal: spacing.lg,
+    borderRadius: borderRadius.xl,
+    ...shadows.sm,
   },
   avatar: { 
     width: 100, 
@@ -158,7 +165,8 @@ const styles = StyleSheet.create({
   },
   section: { 
     marginHorizontal: spacing.lg, 
-    marginBottom: spacing.md 
+    marginBottom: spacing.md,
+    ...shadows.sm,
   },
   sectionTitle: { 
     fontSize: typography.sizes.lg, 

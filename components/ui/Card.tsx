@@ -1,13 +1,13 @@
-import React from 'react';
-import { StyleSheet, ViewStyle, Pressable } from 'react-native';
-import Animated, { 
-  useAnimatedStyle, 
-  useSharedValue, 
-  withSpring,
-  interpolate,
-} from 'react-native-reanimated';
+import { borderRadius, colors, shadows, spacing } from '@/constants/theme';
 import * as Haptics from 'expo-haptics';
-import { colors, borderRadius, shadows, spacing } from '@/constants/theme';
+import React from 'react';
+import { Pressable, StyleSheet, ViewStyle } from 'react-native';
+import Animated, {
+    interpolate,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
+} from 'react-native-reanimated';
 
 interface CardProps {
   children: React.ReactNode;
@@ -89,6 +89,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.backgroundCard,
     borderRadius: borderRadius.xl,
+    overflow: 'hidden',
   },
   card_default: {
     ...shadows.md,

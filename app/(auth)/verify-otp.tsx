@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, Animated as RNAnimated, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { Button } from '@/components/ui/Button';
 import { OTPInput } from '@/components/ui/OTPInput';
-import { colors, spacing, typography, borderRadius } from '@/constants/theme';
+import { borderRadius, colors, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
+import { Dimensions, KeyboardAvoidingView, Platform, Animated as RNAnimated, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -204,18 +204,20 @@ export default function VerifyOTPScreen() {
                 </Text>
               )}
 
-              <Button
-                title="Verify & Continue"
-                onPress={handleVerify}
-                loading={loading}
-                disabled={!isOtpComplete}
-                variant="gradient"
-                size="md"
-                icon="checkmark-circle"
-                iconPosition="right"
-                fullWidth
-                style={styles.button}
-              />
+              <View style={styles.buttonContainer}>
+                <Button
+                  title="Verify & Continue"
+                  onPress={handleVerify}
+                  loading={loading}
+                  disabled={!isOtpComplete}
+                  variant="gradient"
+                  size="lg"
+                  icon="checkmark-circle"
+                  iconPosition="right"
+                  fullWidth
+                  style={styles.button}
+                />
+              </View>
 
               <View style={styles.resendContainer}>
                 <Text style={styles.resendText}>Didn't receive the code? </Text>
@@ -286,6 +288,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
     paddingBottom: spacing.xxl,
+    alignItems: 'center',
   },
   iconSection: {
     alignItems: 'center',
@@ -300,6 +303,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   formCard: {
+    width: '100%',
+    maxWidth: 420,
     backgroundColor: colors.backgroundCard,
     borderRadius: borderRadius.xl,
     padding: spacing.xl,
@@ -308,6 +313,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 20,
     elevation: 10,
+  },
+  buttonContainer: {
+    width: '100%',
+    marginBottom: spacing.md,
   },
   title: {
     fontSize: typography.sizes['2xl'],

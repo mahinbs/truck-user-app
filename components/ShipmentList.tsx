@@ -69,6 +69,7 @@ export const ShipmentList: React.FC<ShipmentListProps> = ({ shipments, onShipmen
 
 const styles = StyleSheet.create({
   container: {
+    paddingTop: spacing.sm,
     flex: 1,
     backgroundColor: colors.background,
   },

@@ -7,18 +7,18 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Dimensions,
   RefreshControl,
   Animated as RNAnimated,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const { width, height } = Dimensions.get('window');
+const SMALL_BREAKPOINT = 375;
 
 // Mock data
 const mockStats = {
@@ -76,21 +76,16 @@ const mockShipments = [
   },
 ];
 
-const quickServices = [
-  { id: '1', icon: 'cube', label: 'Express', color: colors.primary, bg: colors.primaryTransparent },
-  { id: '2', icon: 'shield-checkmark', label: 'Secure', color: colors.success, bg: colors.successLight },
-  { id: '3', icon: 'time', label: 'Economy', color: colors.warning, bg: colors.warningLight },
-  { id: '4', icon: 'calendar', label: 'Scheduled', color: colors.info, bg: colors.infoLight },
-];
 
 export default function DashboardScreen() {
+  const { width, height } = useWindowDimensions();
+  const isSmallScreen = width < SMALL_BREAKPOINT;
   const [refreshing, setRefreshing] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('all');
-  const [activeStat, setActiveStat] = useState(0);
   
   const fadeAnim = useRef(new RNAnimated.Value(0)).current;
   const slideAnim = useRef(new RNAnimated.Value(30)).current;
-  const statAnim = useRef(new RNAnimated.Value(0)).current;
+  const scaleAnim = useRef(new RNAnimated.Value(0.95)).current;
 
   useEffect(() => {
     RNAnimated.parallel([
@@ -105,19 +100,13 @@ export default function DashboardScreen() {
         friction: 7,
         useNativeDriver: true,
       }),
-      RNAnimated.timing(statAnim, {
+      RNAnimated.spring(scaleAnim, {
         toValue: 1,
-        duration: 1200,
+        tension: 20,
+        friction: 7,
         useNativeDriver: true,
       }),
     ]).start();
-
-    // Auto rotate stats
-    const interval = setInterval(() => {
-      setActiveStat((prev) => (prev + 1) % 3);
-    }, 4000);
-
-    return () => clearInterval(interval);
   }, []);
 
   const onRefresh = () => {
@@ -134,61 +123,15 @@ export default function DashboardScreen() {
     return true;
   });
 
-  const renderStatCard = (index: number, icon: string, value: string, label: string, gradientColors: string[]) => (
-    <TouchableOpacity
-      style={[
-        styles.statCard,
-        activeStat === index && styles.statCardActive,
-      ]}
-      activeOpacity={0.9}
-      onPress={() => setActiveStat(index)}
-    >
-      <LinearGradient
-        colors={gradientColors as any}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.statGradient}
-      >
-        <View style={styles.statIconContainer}>
-          <Ionicons name={icon as any} size={28} color={colors.textWhite} />
-        </View>
-        <RNAnimated.View 
-          style={{
-            opacity: statAnim,
-            transform: [{
-              translateY: statAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [20, 0],
-              }),
-            }],
-          }}
-        >
-          <Text style={styles.statValue}>{value}</Text>
-          <Text style={styles.statLabel}>{label}</Text>
-        </RNAnimated.View>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
 
   return (
     <View style={styles.container}>
       <LinearGradient
         colors={[colors.primary + '08', colors.background]}
-        style={styles.backgroundGradient}
+        style={[styles.backgroundGradient, { height: height * 0.4 }]}
       />
       
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <View style={styles.headerLeft}>
-              <Ionicons name="hand-left-outline" size={20} color={colors.textSecondary} style={styles.greetingIcon} />
-              <Text style={styles.greeting}>Welcome back</Text>
-            </View>
-            <Text style={styles.userName}>Alex Morgan</Text>
-          </View>
-        </View>
-
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
@@ -205,6 +148,7 @@ export default function DashboardScreen() {
           <RNAnimated.View 
             style={[
               styles.heroStatsContainer,
+              ...(isSmallScreen ? [styles.heroStatsContainerSmall] : []),
               {
                 opacity: fadeAnim,
                 transform: [{ translateY: slideAnim }],
@@ -216,19 +160,19 @@ export default function DashboardScreen() {
                 colors={[colors.primaryGradientStart, colors.primaryGradientEnd]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={styles.heroGradient}
+                style={[styles.heroGradient, ...(isSmallScreen ? [styles.heroGradientSmall] : [])]}
               >
                 <View style={styles.heroContent}>
-                  <View>
-                    <Text style={styles.heroTitle}>Total Distance</Text>
-                    <Text style={styles.heroValue}>{mockStats.totalDistance} km</Text>
-                    <Text style={styles.heroSubtitle}>Across India</Text>
+                  <View style={styles.heroContentLeft}>
+                    <Text style={styles.heroTitle} numberOfLines={1}>Total Distance</Text>
+                    <Text style={[styles.heroValue, ...(isSmallScreen ? [styles.heroValueSmall] : [])]} numberOfLines={1}>{mockStats.totalDistance} km</Text>
+                    <Text style={styles.heroSubtitle} numberOfLines={1}>Across India</Text>
                   </View>
-                  <View style={styles.heroIconContainer}>
-                    <Ionicons name="map" size={40} color={colors.textWhite} />
+                  <View style={[styles.heroIconContainer, ...(isSmallScreen ? [styles.heroIconContainerSmall] : [])]}>
+                    <Ionicons name="map" size={isSmallScreen ? 28 : 40} color={colors.textWhite} />
                   </View>
                 </View>
-                <View style={styles.heroStats}>
+                <View style={[styles.heroStats, ...(isSmallScreen ? [styles.heroStatsSmall] : [])]}>
                   <View style={styles.heroStatItem}>
                     <Text style={styles.heroStatValue}>{mockStats.activeShipments}</Text>
                     <Text style={styles.heroStatLabel}>Active</Text>
@@ -248,110 +192,174 @@ export default function DashboardScreen() {
             </View>
           </RNAnimated.View>
 
-          {/* Quick Services */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Quick Services</Text>
-            <View style={styles.quickServicesContainer}>
-              <View style={styles.quickServices}>
-                {quickServices.map((service) => (
-                  <Card
-                    key={service.id}
-                    style={styles.serviceCard}
-                    onPress={() => router.push('/(tabs)/book-trip')}
+          {/* Action Buttons */}
+          <RNAnimated.View 
+            style={[
+              styles.actionButtonsContainer,
+              ...(isSmallScreen ? [styles.actionButtonsContainerSmall] : []),
+              {
+                opacity: fadeAnim,
+                transform: [{ scale: scaleAnim }],
+              },
+            ]}
+          >
+            <View style={[styles.actionButtons, ...(isSmallScreen ? [styles.actionButtonsSmall] : [])]}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.primaryAction, ...(isSmallScreen ? [styles.actionButtonSmall] : [])]}
+                onPress={() => router.push('/(tabs)/book-trip')}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={[colors.primary, colors.primaryDark]}
+                  style={styles.actionButtonIcon}
+                >
+                  <Ionicons name="add" size={24} color={colors.textWhite} />
+                </LinearGradient>
+                <Text style={styles.actionButtonText}>New Shipment</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.actionButton, styles.secondaryAction, ...(isSmallScreen ? [styles.actionButtonSmall] : [])]}
+                onPress={() => router.push('/(tabs)/track')}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={[colors.info, colors.infoDark]}
+                  style={styles.actionButtonIcon}
+                >
+                  <Ionicons name="location" size={24} color={colors.textWhite} />
+                </LinearGradient>
+                <Text style={styles.actionButtonText}>Live Tracking</Text>
+              </TouchableOpacity>
+            </View>
+          </RNAnimated.View>
+
+          {/* Quick Stats */}
+          <View style={[styles.section, ...(isSmallScreen ? [styles.sectionSmall] : [])]}>
+            <Text style={[styles.sectionTitle, ...(isSmallScreen ? [styles.sectionTitleSmall] : [])]}>Quick Stats</Text>
+            <View style={[styles.quickStatsContainer, ...(isSmallScreen ? [styles.quickStatsContainerSmall] : [])]}>
+              <Card style={StyleSheet.flatten([styles.quickStatCard, ...(isSmallScreen ? [styles.quickStatCardSmall] : [])])}>
+                <View style={styles.quickStatIconWrapper}>
+                  <LinearGradient
+                    colors={[colors.primary + '20', colors.primary + '10']}
+                    style={[styles.quickStatIconBg, ...(isSmallScreen ? [styles.quickStatIconBgSmall] : [])]}
                   >
-                    <LinearGradient
-                      colors={[service.bg + '40', service.bg + '10']}
-                      style={styles.serviceIconContainer}
-                    >
-                      <Ionicons name={service.icon as any} size={28} color={service.color} />
-                    </LinearGradient>
-                    <Text style={styles.serviceLabel}>{service.label}</Text>
-                    <Text style={styles.serviceSubtitle}>Delivery</Text>
-                  </Card>
-                ))}
-              </View>
+                    <Ionicons name="trending-up" size={isSmallScreen ? 20 : 24} color={colors.primary} />
+                  </LinearGradient>
+                </View>
+                <Text style={[styles.quickStatValue, ...(isSmallScreen ? [styles.quickStatValueSmall] : [])]} numberOfLines={1}>₹{(mockStats.totalSpent / 1000).toFixed(1)}K</Text>
+                <Text style={[styles.quickStatLabel, ...(isSmallScreen ? [styles.quickStatLabelSmall] : [])]} numberOfLines={1}>Total Spent</Text>
+              </Card>
+
+              <Card style={StyleSheet.flatten([styles.quickStatCard, ...(isSmallScreen ? [styles.quickStatCardSmall] : [])])}>
+                <View style={styles.quickStatIconWrapper}>
+                  <LinearGradient
+                    colors={[colors.success + '20', colors.success + '10']}
+                    style={[styles.quickStatIconBg, ...(isSmallScreen ? [styles.quickStatIconBgSmall] : [])]}
+                  >
+                    <Ionicons name="checkmark-circle" size={isSmallScreen ? 20 : 24} color={colors.success} />
+                  </LinearGradient>
+                </View>
+                <Text style={[styles.quickStatValue, ...(isSmallScreen ? [styles.quickStatValueSmall] : [])]} numberOfLines={1}>{mockStats.completedShipments}</Text>
+                <Text style={[styles.quickStatLabel, ...(isSmallScreen ? [styles.quickStatLabelSmall] : [])]} numberOfLines={1}>Completed</Text>
+              </Card>
+
+              <Card style={StyleSheet.flatten([styles.quickStatCard, ...(isSmallScreen ? [styles.quickStatCardSmall] : [])])}>
+                <View style={styles.quickStatIconWrapper}>
+                  <LinearGradient
+                    colors={[colors.info + '20', colors.info + '10']}
+                    style={[styles.quickStatIconBg, ...(isSmallScreen ? [styles.quickStatIconBgSmall] : [])]}
+                  >
+                    <Ionicons name="time" size={isSmallScreen ? 20 : 24} color={colors.info} />
+                  </LinearGradient>
+                </View>
+                <Text style={[styles.quickStatValue, ...(isSmallScreen ? [styles.quickStatValueSmall] : [])]} numberOfLines={1}>{mockStats.activeShipments}</Text>
+                <Text style={[styles.quickStatLabel, ...(isSmallScreen ? [styles.quickStatLabelSmall] : [])]} numberOfLines={1}>Active</Text>
+              </Card>
             </View>
           </View>
 
-          {/* Quick Actions */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Quick Actions</Text>
-            <View style={styles.quickActionsContainer}>
-              <View style={styles.quickActions}>
-                <Card
-                  style={styles.actionCard}
-                  onPress={() => router.push('/(tabs)/book-trip')}
-                >
+          {/* Performance Insights */}
+          <View style={[styles.section, ...(isSmallScreen ? [styles.sectionSmall] : [])]}>
+            <Text style={[styles.sectionTitle, ...(isSmallScreen ? [styles.sectionTitleSmall] : [])]}>Performance Insights</Text>
+            <Card style={StyleSheet.flatten([styles.insightsCard, ...(isSmallScreen ? [styles.insightsCardSmall] : [])])}>
+              <View style={styles.insightsHeader}>
+                <View style={[styles.insightsIconContainer, ...(isSmallScreen ? [styles.insightsIconContainerSmall] : [])]}>
                   <LinearGradient
-                    colors={[colors.primary, colors.primaryDark]}
-                    style={styles.actionGradient}
+                    colors={[colors.primaryGradientStart, colors.primaryGradientEnd]}
+                    style={[styles.insightsIconBg, ...(isSmallScreen ? [styles.insightsIconBgSmall] : [])]}
                   >
-                    <Ionicons name="add" size={28} color={colors.textWhite} />
+                    <Ionicons name="analytics" size={isSmallScreen ? 20 : 24} color={colors.textWhite} />
                   </LinearGradient>
-                  <Text style={styles.actionLabel}>Book Trip</Text>
-                </Card>
-
-                <Card
-                  style={styles.actionCard}
-                  onPress={() => router.push('/(tabs)/track')}
-                >
-                  <LinearGradient
-                    colors={[colors.info, colors.infoDark]}
-                    style={styles.actionGradient}
-                  >
-                    <Ionicons name="location" size={28} color={colors.textWhite} />
-                  </LinearGradient>
-                  <Text style={styles.actionLabel}>Live Track</Text>
-                </Card>
-
-                <Card
-                  style={styles.actionCard}
-                  onPress={() => router.push('/(tabs)/history')}
-                >
-                  <LinearGradient
-                    colors={[colors.success, colors.successDark]}
-                    style={styles.actionGradient}
-                  >
-                    <Ionicons name="document" size={28} color={colors.textWhite} />
-                  </LinearGradient>
-                  <Text style={styles.actionLabel}>History</Text>
-                </Card>
+                </View>
+                <View style={styles.insightsContent}>
+                  <Text style={[styles.insightsTitle, ...(isSmallScreen ? [styles.insightsTitleSmall] : [])]} numberOfLines={1}>On-Time Delivery Rate</Text>
+                  <Text style={[styles.insightsSubtitle, ...(isSmallScreen ? [styles.insightsSubtitleSmall] : [])]} numberOfLines={1}>Your shipments are delivered on time</Text>
+                </View>
+                <View style={styles.insightsValueContainer}>
+                  <Text style={[styles.insightsValue, ...(isSmallScreen ? [styles.insightsValueSmall] : [])]} numberOfLines={1}>98%</Text>
+                </View>
               </View>
-            </View>
+              <View style={styles.insightsProgressBar}>
+                <LinearGradient
+                  colors={[colors.primaryGradientStart, colors.primaryGradientEnd]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[styles.insightsProgressFill, { width: '98%' }]}
+                />
+              </View>
+            </Card>
           </View>
 
-          {/* Stats Cards */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Overview</Text>
-            <View style={styles.statsContainer}>
-              {renderStatCard(
-                0,
-                'time',
-                mockStats.activeShipments.toString(),
-                'Active Shipments',
-                [colors.primaryGradientStart, colors.primaryGradientEnd]
-              )}
-              {renderStatCard(
-                1,
-                'checkmark-done',
-                mockStats.completedShipments.toString(),
-                'Completed',
-                [colors.success, colors.successDark]
-              )}
-              {renderStatCard(
-                2,
-                'trending-up',
-                `₹${(mockStats.totalSpent / 1000).toFixed(1)}K`,
-                'Total Value',
-                [colors.warning, colors.warningDark]
-              )}
+          {/* Service Highlights */}
+          <View style={[styles.section, ...(isSmallScreen ? [styles.sectionSmall] : [])]}>
+            <Text style={[styles.sectionTitle, ...(isSmallScreen ? [styles.sectionTitleSmall] : [])]}>Why Choose Us</Text>
+            <View style={[styles.highlightsGrid, ...(isSmallScreen ? [styles.highlightsGridSmall] : [])]}>
+              <Card style={StyleSheet.flatten([styles.highlightCard, ...(isSmallScreen ? [styles.highlightCardSmall] : [])])}>
+                <View style={styles.highlightIconWrapper}>
+                  <LinearGradient
+                    colors={[colors.success + '20', colors.success + '10']}
+                    style={[styles.highlightIconBg, ...(isSmallScreen ? [styles.highlightIconBgSmall] : [])]}
+                  >
+                    <Ionicons name="shield-checkmark" size={isSmallScreen ? 20 : 24} color={colors.success} />
+                  </LinearGradient>
+                </View>
+                <Text style={[styles.highlightTitle, ...(isSmallScreen ? [styles.highlightTitleSmall] : [])]} numberOfLines={1}>Secure</Text>
+                <Text style={[styles.highlightSubtitle, ...(isSmallScreen ? [styles.highlightSubtitleSmall] : [])]} numberOfLines={2}>100% insured shipments</Text>
+              </Card>
+
+              <Card style={StyleSheet.flatten([styles.highlightCard, ...(isSmallScreen ? [styles.highlightCardSmall] : [])])}>
+                <View style={styles.highlightIconWrapper}>
+                  <LinearGradient
+                    colors={[colors.info + '20', colors.info + '10']}
+                    style={[styles.highlightIconBg, ...(isSmallScreen ? [styles.highlightIconBgSmall] : [])]}
+                  >
+                    <Ionicons name="location" size={isSmallScreen ? 20 : 24} color={colors.info} />
+                  </LinearGradient>
+                </View>
+                <Text style={[styles.highlightTitle, ...(isSmallScreen ? [styles.highlightTitleSmall] : [])]} numberOfLines={1}>Track Live</Text>
+                <Text style={[styles.highlightSubtitle, ...(isSmallScreen ? [styles.highlightSubtitleSmall] : [])]} numberOfLines={2}>Real-time updates</Text>
+              </Card>
+
+              <Card style={StyleSheet.flatten([styles.highlightCard, ...(isSmallScreen ? [styles.highlightCardSmall] : [])])}>
+                <View style={styles.highlightIconWrapper}>
+                  <LinearGradient
+                    colors={[colors.primary + '20', colors.primary + '10']}
+                    style={[styles.highlightIconBg, ...(isSmallScreen ? [styles.highlightIconBgSmall] : [])]}
+                  >
+                    <Ionicons name="time" size={isSmallScreen ? 20 : 24} color={colors.primary} />
+                  </LinearGradient>
+                </View>
+                <Text style={[styles.highlightTitle, ...(isSmallScreen ? [styles.highlightTitleSmall] : [])]} numberOfLines={1}>Fast</Text>
+                <Text style={[styles.highlightSubtitle, ...(isSmallScreen ? [styles.highlightSubtitleSmall] : [])]} numberOfLines={2}>Quick delivery</Text>
+              </Card>
             </View>
           </View>
 
           {/* Shipments Section */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Recent Shipments</Text>
+          <View style={[styles.section, ...(isSmallScreen ? [styles.sectionSmall] : [])]}>
+            <View style={[styles.sectionHeader, ...(isSmallScreen ? [styles.sectionHeaderSmall] : [])]}>
+              <Text style={[styles.sectionTitle, ...(isSmallScreen ? [styles.sectionTitleSmall] : [])]} numberOfLines={1}>Recent Shipments</Text>
               <TouchableOpacity 
                 style={styles.seeAllButton}
                 onPress={() => router.push('/(tabs)/trips')}
@@ -366,7 +374,7 @@ export default function DashboardScreen() {
               horizontal 
               showsHorizontalScrollIndicator={false}
               style={styles.filterTabs}
-              contentContainerStyle={styles.filterTabsContent}
+              contentContainerStyle={[styles.filterTabsContent, ...(isSmallScreen ? [styles.filterTabsContentSmall] : [])]}
             >
               {['all', 'active', 'completed'].map((filter) => (
                 <TouchableOpacity
@@ -390,25 +398,26 @@ export default function DashboardScreen() {
             </ScrollView>
 
             {/* Shipment Cards */}
-            <View style={styles.shipmentsList}>
+            <View style={[styles.shipmentsList, ...(isSmallScreen ? [styles.shipmentsListSmall] : [])]}>
               {filteredShipments.map((shipment, index) => (
                 <Card
                   key={shipment.id}
-                  style={{
-                    ...styles.shipmentCard,
-                    marginTop: index === 0 ? 0 : spacing.md,
-                  }}
+                  style={StyleSheet.flatten([
+                    styles.shipmentCard,
+                    ...(isSmallScreen ? [styles.shipmentCardSmall] : []),
+                    { marginTop: index === 0 ? 0 : spacing.md },
+                  ])}
                   onPress={() => router.push(`/(tabs)/trip/${shipment.id}`)}
                 >
                   <View style={styles.shipmentHeader}>
                     <View style={styles.shipmentHeaderLeft}>
                       <View style={styles.trackingBadge}>
                         <Ionicons name="cube" size={12} color={colors.primary} />
-                        <Text style={styles.trackingId}>{shipment.trackingId}</Text>
+                        <Text style={styles.trackingId} numberOfLines={1} ellipsizeMode="tail">{shipment.trackingId}</Text>
                       </View>
-                      <StatusChip status={shipment.status} size="sm" />
+                      <StatusChip status={shipment.status} size="sm" style={styles.shipmentStatusChip} />
                     </View>
-                    <Text style={styles.shipmentPrice}>{shipment.price}</Text>
+                    <Text style={styles.shipmentPrice} numberOfLines={1}>{shipment.price}</Text>
                   </View>
 
                   <View style={styles.shipmentRoute}>
@@ -419,7 +428,7 @@ export default function DashboardScreen() {
                       />
                       <View style={styles.routeInfo}>
                         <Text style={styles.routeLabel}>Pickup</Text>
-                        <Text style={styles.routeLocation}>{shipment.from}</Text>
+                        <Text style={styles.routeLocation} numberOfLines={2} ellipsizeMode="tail">{shipment.from}</Text>
                       </View>
                     </View>
 
@@ -435,7 +444,7 @@ export default function DashboardScreen() {
                       />
                       <View style={styles.routeInfo}>
                         <Text style={styles.routeLabel}>Delivery</Text>
-                        <Text style={styles.routeLocation}>{shipment.to}</Text>
+                        <Text style={styles.routeLocation} numberOfLines={2} ellipsizeMode="tail">{shipment.to}</Text>
                       </View>
                     </View>
                   </View>
@@ -460,25 +469,25 @@ export default function DashboardScreen() {
                     </View>
                   )}
 
-                  <View style={styles.shipmentDetails}>
+                  <View style={[styles.shipmentDetails, ...(isSmallScreen ? [styles.shipmentDetailsSmall] : [])]}>
                     <View style={styles.detailItem}>
-                      <Ionicons name="cube" size={14} color={colors.textSecondary} />
-                      <Text style={styles.detailText}>{shipment.material}</Text>
+                      <Ionicons name="cube" size={isSmallScreen ? 12 : 14} color={colors.textSecondary} />
+                      <Text style={styles.detailText} numberOfLines={1} ellipsizeMode="tail">{shipment.material}</Text>
                     </View>
                     <View style={styles.detailItem}>
-                      <Ionicons name="barbell" size={14} color={colors.textSecondary} />
-                      <Text style={styles.detailText}>{shipment.weight}</Text>
+                      <Ionicons name="barbell" size={isSmallScreen ? 12 : 14} color={colors.textSecondary} />
+                      <Text style={styles.detailText} numberOfLines={1} ellipsizeMode="tail">{shipment.weight}</Text>
                     </View>
                     <View style={styles.detailItem}>
-                      <Ionicons name="car" size={14} color={colors.textSecondary} />
-                      <Text style={styles.detailText}>{shipment.truckType}</Text>
+                      <Ionicons name="car" size={isSmallScreen ? 12 : 14} color={colors.textSecondary} />
+                      <Text style={styles.detailText} numberOfLines={1} ellipsizeMode="tail">{shipment.truckType}</Text>
                     </View>
                   </View>
 
-                  <View style={styles.shipmentFooter}>
-                    <View style={styles.detailItem}>
-                      <Ionicons name="calendar" size={14} color={colors.textSecondary} />
-                      <Text style={styles.detailText}>
+                  <View style={[styles.shipmentFooter, ...(isSmallScreen ? [styles.shipmentFooterSmall] : [])]}>
+                    <View style={[styles.detailItem, styles.detailItemFlex]}>
+                      <Ionicons name="calendar" size={isSmallScreen ? 12 : 14} color={colors.textSecondary} />
+                      <Text style={styles.detailText} numberOfLines={1} ellipsizeMode="tail">
                         {shipment.status === 'delivered'
                           ? `Delivered: ${shipment.deliveredOn}`
                           : `ETA: ${shipment.expectedDelivery}`}
@@ -486,7 +495,7 @@ export default function DashboardScreen() {
                     </View>
                     <View style={styles.distanceBadge}>
                       <Ionicons name="navigate" size={12} color={colors.primary} />
-                      <Text style={styles.distanceText}>{shipment.distance}</Text>
+                      <Text style={styles.distanceText} numberOfLines={1}>{shipment.distance}</Text>
                     </View>
                   </View>
                 </Card>
@@ -498,13 +507,15 @@ export default function DashboardScreen() {
         </ScrollView>
 
         {/* Floating Action Button */}
-        <FloatingButton
-          icon="add"
-          onPress={() => router.push('/(tabs)/book-trip')}
-          variant="gradient"
-          size="lg"
-          style={styles.fab}
-        />
+        <View style={styles.fabContainer}>
+          <FloatingButton
+            icon="add"
+            onPress={() => router.push('/(tabs)/book-trip')}
+            variant="gradient"
+            size="lg"
+            style={styles.fab}
+          />
+        </View>
       </SafeAreaView>
     </View>
   );
@@ -512,6 +523,7 @@ export default function DashboardScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    paddingTop: spacing.sm,
     flex: 1,
     backgroundColor: colors.background,
   },
@@ -520,35 +532,9 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: height * 0.4,
   },
   safeArea: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  greetingIcon: {
-    marginRight: 2,
-  },
-  greeting: {
-    fontSize: typography.sizes.sm,
-    color: colors.textSecondary,
-  },
-  userName: {
-    fontSize: typography.sizes.xl,
-    fontWeight: typography.weights.bold,
-    color: colors.text,
-    marginTop: 2,
   },
   headerActions: {
     flexDirection: 'row',
@@ -589,6 +575,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     marginBottom: spacing.xl,
   },
+  heroStatsContainerSmall: {
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.md,
+  },
   heroCard: {
     borderRadius: borderRadius.xl,
     overflow: 'hidden',
@@ -597,11 +587,19 @@ const styles = StyleSheet.create({
   heroGradient: {
     padding: spacing.xl,
   },
+  heroGradientSmall: {
+    padding: spacing.md,
+  },
   heroContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: spacing.xl,
+  },
+  heroContentLeft: {
+    flex: 1,
+    minWidth: 0,
+    marginRight: spacing.sm,
   },
   heroTitle: {
     fontSize: typography.sizes.sm,
@@ -613,6 +611,9 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.bold,
     color: colors.textWhite,
     marginTop: spacing.xs,
+  },
+  heroValueSmall: {
+    fontSize: 22,
   },
   heroSubtitle: {
     fontSize: typography.sizes.xs,
@@ -628,6 +629,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  heroIconContainerSmall: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
   heroStats: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -635,6 +641,9 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     borderTopWidth: 1,
     borderTopColor: colors.textWhite + '20',
+  },
+  heroStatsSmall: {
+    paddingTop: spacing.md,
   },
   heroStatItem: {
     alignItems: 'center',
@@ -656,7 +665,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.textWhite + '30',
   },
   section: {
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -670,7 +679,7 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.bold,
     color: colors.text,
     paddingHorizontal: spacing.lg,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.md,
   },
   seeAllButton: {
     flexDirection: 'row',
@@ -682,119 +691,193 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: typography.weights.semibold,
   },
-  quickServicesContainer: {
+  actionButtonsContainer: {
     paddingHorizontal: spacing.lg,
+    marginBottom: spacing.lg,
   },
-  quickServices: {
+  actionButtonsContainerSmall: {
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.md,
+  },
+  actionButtons: {
     flexDirection: 'row',
     gap: spacing.md,
+    width: '100%',
   },
-  serviceCard: {
+  actionButtonsSmall: {
+    gap: spacing.sm,
+  },
+  actionButton: {
     flex: 1,
-    height: 110,
+    minWidth: 0,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: spacing.sm,
-    borderWidth: 0,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.md,
     borderRadius: borderRadius.lg,
     backgroundColor: colors.backgroundCard,
-    ...shadows.sm,
+    ...shadows.md,
+    gap: spacing.sm,
   },
-  serviceIconContainer: {
+  actionButtonSmall: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+  },
+  primaryAction: {
+    borderWidth: 1,
+    borderColor: colors.primary + '20',
+  },
+  secondaryAction: {
+    borderWidth: 1,
+    borderColor: colors.info + '20',
+  },
+  actionButtonIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
+    color: colors.text,
+  },
+  sectionSmall: {
+    marginBottom: spacing.md,
+  },
+  sectionTitleSmall: {
+    fontSize: typography.sizes.md,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  sectionHeaderSmall: {
+    paddingHorizontal: spacing.md,
+  },
+  quickStatsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.lg,
+    gap: spacing.md,
+  },
+  quickStatsContainerSmall: {
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
+  },
+  quickStatCard: {
+    flex: 1,
+    minWidth: 0,
+    padding: spacing.md,
+    alignItems: 'center',
+    ...shadows.md,
+  },
+  quickStatCardSmall: {
+    padding: spacing.sm,
+  },
+  quickStatIconWrapper: {
+    marginBottom: spacing.sm,
+  },
+  quickStatIconBg: {
     width: 48,
     height: 48,
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.xs,
   },
-  serviceLabel: {
-    fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.semibold,
+  quickStatIconBgSmall: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+  },
+  quickStatValue: {
+    fontSize: typography.sizes.lg,
+    fontWeight: typography.weights.bold,
     color: colors.text,
-    textAlign: 'center',
+    marginBottom: spacing.xs / 2,
   },
-  serviceSubtitle: {
+  quickStatValueSmall: {
+    fontSize: typography.sizes.sm,
+  },
+  quickStatLabel: {
     fontSize: typography.sizes.xs,
     color: colors.textSecondary,
     textAlign: 'center',
   },
-  quickActionsContainer: {
-    paddingHorizontal: spacing.lg,
+  quickStatLabelSmall: {
+    fontSize: 10,
   },
-  quickActions: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  actionCard: {
-    flex: 1,
-    height: 110,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.sm,
-    borderWidth: 0,
-    borderRadius: borderRadius.lg,
-    backgroundColor: colors.backgroundCard,
-    ...shadows.sm,
-  },
-  actionGradient: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.xs,
-  },
-  actionLabel: {
-    fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.semibold,
-    color: colors.text,
-    textAlign: 'center',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: spacing.lg,
-    gap: spacing.md,
-  },
-  statCard: {
-    flex: 1,
-    height: 160,
-    borderRadius: borderRadius.xl,
-    overflow: 'hidden',
+  insightsCard: {
+    padding: spacing.lg,
+    marginHorizontal: spacing.lg,
     ...shadows.md,
-    backgroundColor: colors.primary, // Fallback
   },
-  statCardActive: {
-    ...shadows.lg,
-    // Removed scale transform to keep sizes consistent
-  },
-  statGradient: {
-    flex: 1,
+  insightsCardSmall: {
     padding: spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginHorizontal: spacing.md,
   },
-  statIconContainer: {
+  insightsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  insightsIconContainer: {
+    marginRight: spacing.md,
+  },
+  insightsIconContainerSmall: {
+    marginRight: spacing.sm,
+  },
+  insightsIconBg: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.sm,
   },
-  statValue: {
+  insightsIconBgSmall: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  insightsContent: {
+    flex: 1,
+    minWidth: 0,
+  },
+  insightsTitle: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.bold,
+    color: colors.text,
+    marginBottom: spacing.xs / 2,
+  },
+  insightsTitleSmall: {
+    fontSize: typography.sizes.sm,
+  },
+  insightsSubtitle: {
+    fontSize: typography.sizes.xs,
+    color: colors.textSecondary,
+  },
+  insightsSubtitleSmall: {
+    fontSize: 10,
+  },
+  insightsValueContainer: {
+    alignItems: 'flex-end',
+  },
+  insightsValue: {
     fontSize: typography.sizes.xl,
     fontWeight: typography.weights.bold,
-    color: colors.textWhite,
-    marginBottom: 2,
-    textAlign: 'center',
+    color: colors.primary,
   },
-  statLabel: {
-    fontSize: typography.sizes.xs,
-    color: colors.textWhite,
-    opacity: 0.9,
-    textAlign: 'center',
+  insightsValueSmall: {
+    fontSize: typography.sizes.lg,
+  },
+  insightsProgressBar: {
+    height: 6,
+    backgroundColor: colors.border,
+    borderRadius: borderRadius.full,
+    overflow: 'hidden',
+  },
+  insightsProgressFill: {
+    height: '100%',
+    borderRadius: borderRadius.full,
   },
   filterTabs: {
     marginBottom: spacing.md,
@@ -829,29 +912,39 @@ const styles = StyleSheet.create({
   shipmentCard: {
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
-    ...shadows.sm,
+    ...shadows.md,
   },
   shipmentHeader: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: spacing.sm,
     marginBottom: spacing.lg,
   },
   shipmentHeaderLeft: {
+    flex: 1,
+    minWidth: 0,
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: spacing.sm,
+  },
+  shipmentStatusChip: {
+    flexShrink: 0,
   },
   trackingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
+    maxWidth: '100%',
     backgroundColor: colors.primaryTransparent,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.sm,
   },
   trackingId: {
+    flex: 1,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.bold,
     color: colors.primary,
@@ -860,6 +953,9 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.bold,
     color: colors.text,
+    marginLeft: spacing.sm,
+    flexShrink: 0,
+    minWidth: 72,
   },
   shipmentRoute: {
     marginBottom: spacing.lg,
@@ -896,6 +992,7 @@ const styles = StyleSheet.create({
   routeInfo: {
     marginLeft: spacing.md,
     flex: 1,
+    minWidth: 0,
   },
   routeLabel: {
     fontSize: typography.sizes.xs,
@@ -948,8 +1045,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
+    flex: 1,
+    minWidth: 0,
+    maxWidth: '33%',
   },
   detailText: {
+    flex: 1,
     fontSize: typography.sizes.xs,
     color: colors.textSecondary,
   },
@@ -973,12 +1074,89 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.medium,
   },
   bottomSpacer: {
-    height: 120,
+    height: 100,
+  },
+  fabContainer: {
+    position: 'absolute',
+    bottom: 20,
+    right: spacing.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   fab: {
-    position: 'absolute',
-    bottom: 60,
-    right: spacing.lg,
-    ...shadows.lg,
+    ...shadows.xl,
+  },
+  highlightsGrid: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.lg,
+    gap: spacing.md,
+  },
+  highlightsGridSmall: {
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
+  },
+  highlightCard: {
+    flex: 1,
+    minWidth: 0,
+    padding: spacing.md,
+    alignItems: 'center',
+    ...shadows.sm,
+  },
+  highlightCardSmall: {
+    padding: spacing.sm,
+  },
+  highlightIconWrapper: {
+    marginBottom: spacing.sm,
+  },
+  highlightIconBg: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  highlightIconBgSmall: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  highlightTitle: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.bold,
+    color: colors.text,
+    marginBottom: spacing.xs / 2,
+    textAlign: 'center',
+  },
+  highlightTitleSmall: {
+    fontSize: typography.sizes.xs,
+  },
+  highlightSubtitle: {
+    fontSize: typography.sizes.xs,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  highlightSubtitleSmall: {
+    fontSize: 10,
+  },
+  filterTabsContentSmall: {
+    paddingHorizontal: spacing.md,
+  },
+  shipmentsListSmall: {
+    paddingHorizontal: spacing.md,
+  },
+  shipmentCardSmall: {
+    padding: spacing.md,
+  },
+  shipmentDetailsSmall: {
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+  },
+  shipmentFooterSmall: {
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+  },
+  detailItemFlex: {
+    flex: 1,
+    minWidth: 0,
   },
 });

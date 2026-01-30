@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { Card } from '@/components/ui/Card';
 import { StatusChip } from '@/components/ui/StatusChip';
-import { colors, spacing, typography, borderRadius } from '@/constants/theme';
+import { borderRadius, colors, shadows, spacing, typography } from '@/constants/theme';
+import { router } from 'expo-router';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const mockTrips = [
@@ -18,10 +17,6 @@ export default function DriverTripsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.title}>My Trips</Text>
-      </View>
-
       <View style={styles.filterTabs}>
         {['all', 'active', 'completed'].map((f) => (
           <TouchableOpacity
@@ -55,20 +50,70 @@ export default function DriverTripsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  header: { paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
-  title: { fontSize: typography.sizes['2xl'], fontWeight: typography.weights.bold, color: colors.text },
-  filterTabs: { flexDirection: 'row', paddingHorizontal: spacing.lg, gap: spacing.sm, marginBottom: spacing.md },
-  filterTab: { flex: 1, paddingVertical: spacing.sm, borderRadius: borderRadius.full, backgroundColor: colors.backgroundCard, borderWidth: 1.5, borderColor: colors.border, alignItems: 'center' },
-  filterTabActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  filterText: { fontSize: typography.sizes.sm, fontWeight: typography.weights.semibold, color: colors.textSecondary },
-  filterTextActive: { color: colors.textWhite },
-  scrollView: { flex: 1, paddingHorizontal: spacing.lg },
-  tripCard: { marginBottom: spacing.md },
-  tripHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
-  earnings: { fontSize: typography.sizes.lg, fontWeight: typography.weights.bold, color: colors.success },
-  tripRoute: {},
-  routeText: { fontSize: typography.sizes.md, fontWeight: typography.weights.semibold, color: colors.text, marginBottom: 2 },
-  dateText: { fontSize: typography.sizes.sm, color: colors.textSecondary },
+  container: { 
+    paddingTop: spacing.sm,
+    flex: 1, 
+    backgroundColor: colors.background,
+  },
+  filterTabs: { 
+    flexDirection: 'row', 
+    paddingHorizontal: spacing.lg, 
+    gap: spacing.sm, 
+    marginBottom: spacing.md,
+    marginTop: spacing.sm,
+  },
+  filterTab: { 
+    flex: 1, 
+    paddingVertical: spacing.sm, 
+    borderRadius: borderRadius.full, 
+    backgroundColor: colors.backgroundCard, 
+    borderWidth: 1.5, 
+    borderColor: colors.border, 
+    alignItems: 'center' 
+  },
+  filterTabActive: { 
+    backgroundColor: colors.primary, 
+    borderColor: colors.primary 
+  },
+  filterText: { 
+    fontSize: typography.sizes.sm, 
+    fontWeight: typography.weights.semibold, 
+    color: colors.textSecondary 
+  },
+  filterTextActive: { 
+    color: colors.textWhite 
+  },
+  scrollView: { 
+    flex: 1, 
+    paddingHorizontal: spacing.lg 
+  },
+  tripCard: { 
+    marginBottom: spacing.md,
+    ...shadows.sm,
+  },
+  tripHeader: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: spacing.sm 
+  },
+  earnings: { 
+    fontSize: typography.sizes.lg, 
+    fontWeight: typography.weights.bold, 
+    color: colors.success 
+  },
+  tripRoute: {
+    marginTop: spacing.xs,
+  },
+  routeText: { 
+    fontSize: typography.sizes.md, 
+    fontWeight: typography.weights.semibold, 
+    color: colors.text, 
+    marginBottom: 2 
+  },
+  dateText: { 
+    fontSize: typography.sizes.sm, 
+    color: colors.textSecondary 
+  },
 });
 
