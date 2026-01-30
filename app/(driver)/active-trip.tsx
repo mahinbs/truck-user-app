@@ -1,21 +1,52 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { StatusChip } from '@/components/ui/StatusChip';
+import { borderRadius, colors, shadows, spacing, typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { StatusChip } from '@/components/ui/StatusChip';
-import { colors, spacing, typography, borderRadius } from '@/constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useState } from 'react';
+import { Dimensions, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
 type TripStatus = 'GOING_TO_PICKUP' | 'AT_PICKUP' | 'LOADED' | 'IN_TRANSIT' | 'AT_DESTINATION';
 
+// Full trip details (can be loaded by id when navigated from home current trip card)
+const TRIP_DETAILS: Record<string, {
+  trackingId: string;
+  from: string;
+  to: string;
+  material: string;
+  weight: string;
+  truckType: string;
+  earnings: number;
+  customerName: string;
+  customerPhone: string;
+  eta: string;
+  remainingKm: string;
+}> = {
+  'current-1': {
+    trackingId: 'TRK2024001',
+    from: 'Mumbai, Maharashtra',
+    to: 'Delhi, Delhi',
+    material: 'Electronics',
+    weight: '1200 kg',
+    truckType: 'Container Truck',
+    earnings: 12500,
+    customerName: 'Alex Morgan',
+    customerPhone: '+919876543210',
+    eta: '4h 30m',
+    remainingKm: '497 km',
+  },
+};
+
 export default function ActiveTripScreen() {
-  const [status, setStatus] = useState<TripStatus>('GOING_TO_PICKUP');
+  const { id: tripId } = useLocalSearchParams<{ id?: string }>();
+  const tripDetails = tripId ? TRIP_DETAILS[tripId] : null;
+  const [status, setStatus] = useState<TripStatus>(tripId ? 'IN_TRANSIT' : 'GOING_TO_PICKUP');
 
   const getActionButton = () => {
     switch (status) {
@@ -106,43 +137,79 @@ export default function ActiveTripScreen() {
               </TouchableOpacity>
             </View>
 
+            {tripDetails && (
+              <View style={styles.trackingRow}>
+                <Ionicons name="cube" size={16} color={colors.primary} />
+                <Text style={styles.trackingId}>{tripDetails.trackingId}</Text>
+                <Text style={styles.earningsTag}>₹{tripDetails.earnings.toLocaleString()}</Text>
+              </View>
+            )}
+
             <View style={styles.routeInfo}>
               <View style={styles.routeRow}>
                 <Ionicons name="location" size={20} color={colors.primary} />
                 <View>
                   <Text style={styles.routeLabel}>Pickup</Text>
-                  <Text style={styles.routeText}>Mumbai, Maharashtra</Text>
+                  <Text style={styles.routeText}>{tripDetails?.from ?? 'Mumbai, Maharashtra'}</Text>
                 </View>
               </View>
               <View style={styles.routeRow}>
                 <Ionicons name="flag" size={20} color={colors.success} />
                 <View>
                   <Text style={styles.routeLabel}>Drop</Text>
-                  <Text style={styles.routeText}>Delhi, Delhi</Text>
+                  <Text style={styles.routeText}>{tripDetails?.to ?? 'Delhi, Delhi'}</Text>
                 </View>
               </View>
             </View>
+
+            {tripDetails && (
+              <View style={styles.detailsGrid}>
+                <View style={styles.detailRow}>
+                  <Ionicons name="cube" size={18} color={colors.textSecondary} />
+                  <Text style={styles.detailLabel}>Material</Text>
+                  <Text style={styles.detailValue}>{tripDetails.material}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Ionicons name="barbell" size={18} color={colors.textSecondary} />
+                  <Text style={styles.detailLabel}>Weight</Text>
+                  <Text style={styles.detailValue}>{tripDetails.weight}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Ionicons name="car" size={18} color={colors.textSecondary} />
+                  <Text style={styles.detailLabel}>Vehicle</Text>
+                  <Text style={styles.detailValue}>{tripDetails.truckType}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Ionicons name="person" size={18} color={colors.textSecondary} />
+                  <Text style={styles.detailLabel}>Customer</Text>
+                  <Text style={styles.detailValue}>{tripDetails.customerName}</Text>
+                </View>
+              </View>
+            )}
 
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
                 <Ionicons name="time" size={18} color={colors.textSecondary} />
                 <View>
                   <Text style={styles.statLabel}>ETA</Text>
-                  <Text style={styles.statValue}>4h 30m</Text>
+                  <Text style={styles.statValue}>{tripDetails?.eta ?? '4h 30m'}</Text>
                 </View>
               </View>
               <View style={styles.statItem}>
                 <Ionicons name="speedometer" size={18} color={colors.textSecondary} />
                 <View>
                   <Text style={styles.statLabel}>Remaining</Text>
-                  <Text style={styles.statValue}>420 km</Text>
+                  <Text style={styles.statValue}>{tripDetails?.remainingKm ?? '420 km'}</Text>
                 </View>
               </View>
             </View>
 
-            <TouchableOpacity style={styles.customerButton}>
+            <TouchableOpacity 
+              style={styles.customerButton}
+              onPress={() => tripDetails?.customerPhone && Linking.openURL(`tel:${tripDetails.customerPhone}`)}
+            >
               <Ionicons name="call" size={20} color={colors.primary} />
-              <Text style={styles.customerText}>Contact Customer</Text>
+              <Text style={styles.customerText}>Contact Customer{tripDetails ? ` · ${tripDetails.customerName}` : ''}</Text>
             </TouchableOpacity>
           </Card>
         </View>
@@ -156,7 +223,8 @@ export default function ActiveTripScreen() {
             icon={action.icon}
             iconPosition="right"
             fullWidth
-            size="lg"
+            size="md"
+            style={styles.actionButton}
           />
         </View>
       </SafeAreaView>
@@ -166,6 +234,7 @@ export default function ActiveTripScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    paddingTop: spacing.sm,
     flex: 1,
     backgroundColor: colors.background,
   },
@@ -174,7 +243,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 180,
+    height: 160,
   },
   safeArea: {
     flex: 1,
@@ -201,21 +270,27 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
   },
   mapPlaceholder: {
-    height: 250,
+    height: 200,
     backgroundColor: colors.backgroundCard,
     borderRadius: borderRadius.xl,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.md,
+    ...shadows.sm,
   },
   mapText: {
     marginTop: spacing.sm,
     color: colors.textSecondary,
   },
-  statusCard: {},
+  statusCard: {
+    ...shadows.md,
+    marginBottom: spacing.sm,
+  },
   statusHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -235,6 +310,26 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     color: colors.warning,
     fontWeight: typography.weights.semibold,
+  },
+  trackingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+    paddingBottom: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  trackingId: {
+    flex: 1,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.bold,
+    color: colors.primary,
+  },
+  earningsTag: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.bold,
+    color: colors.success,
   },
   routeInfo: {
     gap: spacing.md,
@@ -258,10 +353,36 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.semibold,
     color: colors.text,
   },
+  detailsGrid: {
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+    paddingBottom: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  detailLabel: {
+    width: 72,
+    fontSize: typography.sizes.xs,
+    color: colors.textSecondary,
+  },
+  detailValue: {
+    flex: 1,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.medium,
+    color: colors.text,
+  },
   statsRow: {
     flexDirection: 'row',
-    gap: spacing.xl,
+    gap: spacing.lg,
     marginBottom: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
   statItem: {
     flex: 1,
@@ -287,6 +408,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     backgroundColor: colors.primaryTransparent,
     borderRadius: borderRadius.lg,
+    marginTop: spacing.sm,
   },
   customerText: {
     fontSize: typography.sizes.md,
@@ -294,10 +416,15 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   actionContainer: {
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
     backgroundColor: colors.backgroundCard,
     borderTopWidth: 1,
     borderTopColor: colors.border,
+  },
+  actionButton: {
+    marginVertical: 0,
   },
 });
 

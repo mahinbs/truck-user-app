@@ -22,6 +22,9 @@ export default function DriverTabsLayout() {
             <DriverHeader
               title={getTitle()}
               showBack={false}
+              showGreeting={route.name === 'home'}
+              userName={route.name === 'home' ? 'Raj Kumar' : undefined}
+              subtitle={route.name === 'home' ? 'MH 02 AB 1234' : undefined}
               notificationCount={2}
             />
           ),
@@ -34,18 +37,21 @@ export default function DriverTabsLayout() {
         tabBarStyle: {
           backgroundColor: colors.backgroundCard,
           borderTopWidth: 0,
-          height: Platform.OS === 'ios' ? 88 : 65,
-     
+          height: Platform.OS === 'ios' ? 88 : 72,
           ...shadows.lg,
           elevation: 20,
         },
         tabBarLabelStyle: {
           fontSize: typography.sizes.xs,
           fontWeight: typography.weights.semibold,
-          marginTop: 4,
+          marginTop: 2,
+          marginBottom: 0,
         },
         tabBarIconStyle: {
-          marginTop: 4,
+          marginTop: 2,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 4,
         },
         };
       }}

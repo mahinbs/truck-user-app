@@ -1,16 +1,16 @@
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { colors, spacing, typography } from '@/constants/theme';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native';
-import { router } from 'expo-router';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
-import { colors, spacing, typography } from '@/constants/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SignupScreen() {
@@ -171,17 +171,19 @@ export default function SignupScreen() {
             />
           </View>
 
-          <Button
-            title="Create Account"
-            onPress={handleSignup}
-            loading={loading}
-            variant="gradient"
-            icon="arrow-forward"
-            iconPosition="right"
-            fullWidth
-            size="md"
-            style={styles.signupButton}
-          />
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Create Account"
+              onPress={handleSignup}
+              loading={loading}
+              variant="gradient"
+              size="lg"
+              icon="arrow-forward"
+              iconPosition="right"
+              fullWidth
+              style={styles.signupButton}
+            />
+          </View>
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Already have an account? </Text>
@@ -226,8 +228,12 @@ const styles = StyleSheet.create({
   form: {
     marginBottom: spacing.lg,
   },
-  signupButton: {
+  buttonContainer: {
+    width: '100%',
     marginBottom: spacing.md,
+  },
+  signupButton: {
+    marginBottom: 0,
   },
   footer: {
     flexDirection: 'row',

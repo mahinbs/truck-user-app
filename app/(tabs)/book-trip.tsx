@@ -1,23 +1,23 @@
-import React, { useState, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Dimensions,
-  Animated as RNAnimated,
-  Platform,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { colors, spacing, typography, borderRadius } from '@/constants/theme';
+import { borderRadius, colors, shadows, spacing, typography } from '@/constants/theme';
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Dimensions,
+  Platform,
+  Animated as RNAnimated,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
@@ -148,7 +148,7 @@ export default function BookTripScreen() {
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
       >
-        <View style={[styles.decorCircle, styles.decorCircle1]} />
+        <View style={styles.decorCircle1} />
       </LinearGradient>
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -511,6 +511,7 @@ export default function BookTripScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    paddingTop: spacing.sm,
     flex: 1,
     backgroundColor: colors.background,
   },
@@ -519,7 +520,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 200,
+    height: 180,
     overflow: 'hidden',
   },
   decorCircle1: {
@@ -605,7 +606,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: spacing.lg,
-    paddingBottom: 100,
+    paddingBottom: 90,
   },
   stepCard: {
     marginBottom: spacing.md,
@@ -802,10 +803,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.md,
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
     backgroundColor: colors.backgroundCard,
     borderTopWidth: 1,
     borderTopColor: colors.border,
+    ...shadows.sm,
   },
   navButton: {
     flexDirection: 'row',

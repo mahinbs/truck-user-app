@@ -5,10 +5,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import Animated, {
-  interpolate,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
+    interpolate,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
 } from 'react-native-reanimated';
 
 interface ButtonProps {
@@ -188,20 +188,21 @@ const styles = StyleSheet.create({
     minWidth: 100, // Increased minimum width for sm
   },
   button_md: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
-    minHeight: 56,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.lg,
+    minHeight: 52,
     minWidth: 120, // Increased minimum width for md
   },
   button_lg: {
     paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.xxl,
+    paddingHorizontal: spacing.xl,
     minHeight: 64,
     minWidth: 140, // Increased minimum width for lg
   },
   buttonFullWidth: {
     width: '100%',
-    minWidth: '100%', // Ensure full width buttons take all space
+    minWidth: '100%',
+    alignSelf: 'stretch',
   },
   buttonDisabled: {
     opacity: 0.5,
@@ -221,7 +222,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1, // Make content take available space
-    paddingHorizontal: spacing.sm, // Add horizontal padding inside
+    paddingHorizontal: spacing.xs, // Reduced horizontal padding inside
   },
   iconLeft: {
     marginRight: spacing.sm,

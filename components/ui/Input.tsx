@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { TextInput, View, Text, StyleSheet, TextInputProps, TouchableOpacity } from 'react-native';
+import { borderRadius, colors, shadows, spacing, typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, borderRadius, typography, shadows } from '@/constants/theme';
+import React, { useState } from 'react';
+import { StyleSheet, Text, TextInput, TextInputProps, TouchableOpacity, View } from 'react-native';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -103,6 +103,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     backgroundColor: colors.backgroundCard,
     minHeight: 52,
+    overflow: 'hidden',
     ...shadows.sm,
   },
   inputWrapperFocused: {
@@ -113,13 +114,14 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    minWidth: 0,
     paddingHorizontal: spacing.md,
     fontSize: typography.sizes.md,
     color: colors.text,
     paddingVertical: spacing.md,
   },
   inputWithLeftIcon: {
-    paddingLeft: 0,
+    paddingLeft: spacing.xs,
   },
   leftIcon: {
     marginLeft: spacing.md,

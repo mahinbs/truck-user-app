@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Dimensions,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { borderRadius, colors, shadows, spacing, typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { colors, spacing, typography, borderRadius, shadows } from '@/constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
@@ -63,7 +63,7 @@ export default function TripRequestScreen() {
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
       >
-        <View style={[styles.decorCircle, styles.decorCircle1]} />
+        <View style={styles.decorCircle1} />
       </LinearGradient>
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -217,6 +217,7 @@ export default function TripRequestScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    paddingTop: spacing.sm,
     flex: 1,
     backgroundColor: colors.background,
   },

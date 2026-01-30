@@ -125,11 +125,12 @@ export default function EarningsScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    paddingTop: spacing.sm,
     flex: 1,
     backgroundColor: colors.background,
   },
   headerSpacer: {
-    height: spacing.md,
+    height: spacing.sm,
   },
   scrollView: {
     flex: 1,
@@ -240,6 +241,7 @@ const styles = StyleSheet.create({
   },
   tripCard: {
     marginBottom: spacing.sm,
+    ...shadows.sm,
   },
   tripRow: {
     flexDirection: 'row',

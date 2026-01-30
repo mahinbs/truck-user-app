@@ -50,7 +50,7 @@ export default function SupportScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.background, paddingTop: spacing.sm },
   header: { paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
   title: { fontSize: typography.sizes['2xl'], fontWeight: typography.weights.bold, color: colors.text },
   content: { flex: 1, paddingHorizontal: spacing.lg },

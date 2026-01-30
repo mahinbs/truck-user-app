@@ -60,7 +60,7 @@ export default function DeliveryConfirmationScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.background, paddingTop: spacing.sm },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
   title: { fontSize: typography.sizes.xl, fontWeight: typography.weights.bold, color: colors.text },
   content: { flex: 1, paddingHorizontal: spacing.lg },

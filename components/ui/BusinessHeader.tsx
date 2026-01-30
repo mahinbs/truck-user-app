@@ -10,6 +10,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 interface BusinessHeaderProps {
   title: string;
   showBack?: boolean;
+  showGreeting?: boolean;
+  userName?: string;
   notificationCount?: number;
   onNotificationPress?: () => void;
   onSearchPress?: () => void;
@@ -19,6 +21,8 @@ interface BusinessHeaderProps {
 export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
   title,
   showBack = false,
+  showGreeting = false,
+  userName = '',
   notificationCount = 0,
   onNotificationPress,
   onSearchPress,
@@ -80,16 +84,23 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
                 onPress={handleBack}
                 activeOpacity={0.7}
               >
-                <Ionicons name="arrow-back" size={24} color={colors.textWhite} />
+                <Ionicons name="arrow-back" size={20} color={colors.textWhite} />
               </TouchableOpacity>
             ) : (
-              <View style={styles.logoContainer}>
-                <View style={styles.logo}>
-                  <Ionicons name="cube" size={28} color={colors.textWhite} />
-                </View>
-                <Text style={styles.logoText}>TruckFlow</Text>
+              <View style={styles.logo}>
+                <Ionicons name="cube" size={20} color={colors.textWhite} />
               </View>
             )}
+            <View style={styles.titleBlock}>
+              {showGreeting ? (
+                <>
+                  <Text style={styles.greetingLabel} numberOfLines={1}>Welcome back</Text>
+                  <Text style={styles.greetingName} numberOfLines={1}>{userName || 'User'}</Text>
+                </>
+              ) : (
+                <Text style={styles.headerTitle} numberOfLines={1}>{title}</Text>
+              )}
+            </View>
           </View>
 
           {/* Right Section - Actions */}
@@ -100,7 +111,7 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
                 onPress={handleSearch}
                 activeOpacity={0.7}
               >
-                <Ionicons name="search" size={22} color={colors.textWhite} />
+                <Ionicons name="search" size={18} color={colors.textWhite} />
               </TouchableOpacity>
             )}
             
@@ -109,7 +120,7 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
               onPress={handleNotification}
               activeOpacity={0.7}
             >
-              <Ionicons name="notifications-outline" size={22} color={colors.textWhite} />
+              <Ionicons name="notifications-outline" size={18} color={colors.textWhite} />
               {notificationCount > 0 && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>
@@ -124,7 +135,7 @@ export const BusinessHeader: React.FC<BusinessHeaderProps> = ({
               onPress={handleHelp}
               activeOpacity={0.7}
             >
-              <Ionicons name="help-circle-outline" size={22} color={colors.textWhite} />
+              <Ionicons name="help-circle-outline" size={18} color={colors.textWhite} />
             </TouchableOpacity>
           </View>
         </View>
@@ -147,52 +158,66 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
     width: '100%',
+    minHeight: 44,
   },
   leftSection: {
-    flex: 2,
+    flex: 1,
+    minWidth: 0,
     flexDirection: 'row',
     alignItems: 'center',
+    marginRight: spacing.sm,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
   },
   logo: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  logoText: {
+  titleBlock: {
+    flex: 1,
+    minWidth: 0,
+    marginLeft: spacing.sm,
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.bold,
+    color: colors.textWhite,
+  },
+  greetingLabel: {
+    fontSize: typography.sizes.xs,
+    color: colors.textWhite,
+    opacity: 0.9,
+  },
+  greetingName: {
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.bold,
     color: colors.textWhite,
-    letterSpacing: 0.5,
+    marginTop: 2,
   },
   rightSection: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    gap: spacing.md,
+    gap: spacing.xs,
+    flexShrink: 0,
   },
   iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -200,11 +225,11 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: 'absolute',
-    top: 4,
-    right: 4,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
+    top: 2,
+    right: 2,
+    minWidth: 14,
+    height: 14,
+    borderRadius: 7,
     backgroundColor: colors.error,
     justifyContent: 'center',
     alignItems: 'center',
@@ -213,7 +238,7 @@ const styles = StyleSheet.create({
     borderColor: colors.primaryGradientStart,
   },
   badgeText: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: typography.weights.bold,
     color: colors.textWhite,
   },

@@ -8,7 +8,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, KeyboardAvoidingView, Platform, Animated as RNAnimated, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const { width } = Dimensions.get('window');
+const { width: screenWidth } = Dimensions.get('window');
 
 export default function LoginScreen() {
   const [phone, setPhone] = useState('');
@@ -115,7 +115,7 @@ export default function LoginScreen() {
               <View style={styles.inputContainer}>
                 <Input
                   label="Phone Number"
-                  placeholder="Enter your phone number"
+                  placeholder="Enter phone number"
                   value={phone}
                   onChangeText={(text) => {
                     setPhone(text);
@@ -127,17 +127,19 @@ export default function LoginScreen() {
                 />
               </View>
 
-              <Button
-                title="Sign In"
-                onPress={handleLogin}
-                loading={loading}
-                disabled={!phone}
-                variant="gradient"
-                size="md"
-                icon="arrow-forward"
-                iconPosition="right"
-                fullWidth
-              />
+              <View style={styles.buttonContainer}>
+                <Button
+                  title="Sign In"
+                  onPress={handleLogin}
+                  loading={loading}
+                  disabled={!phone}
+                  variant="gradient"
+                  size="lg"
+                  icon="arrow-forward"
+                  iconPosition="right"
+                  fullWidth
+                />
+              </View>
 
               <View style={styles.divider}>
                 <View style={styles.dividerLine} />
@@ -145,13 +147,16 @@ export default function LoginScreen() {
                 <View style={styles.dividerLine} />
               </View>
 
-              <Button
-                title="Create New Account"
-                onPress={() => router.push('/(auth)/signup')}
-                variant="outline"
-                icon="person-add"
-                fullWidth
-              />
+              <View style={styles.buttonContainer}>
+                <Button
+                  title="Create New Account"
+                  onPress={() => router.push('/(auth)/signup')}
+                  variant="outline"
+                  size="lg"
+                  icon="person-add"
+                  fullWidth
+                />
+              </View>
             </RNAnimated.View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -179,16 +184,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   decorCircle1: {
-    width: width * 0.8,
-    height: width * 0.8,
-    top: -width * 0.4,
-    right: -width * 0.2,
+    width: screenWidth * 0.8,
+    height: screenWidth * 0.8,
+    top: -screenWidth * 0.4,
+    right: -screenWidth * 0.2,
   },
   decorCircle2: {
-    width: width * 0.6,
-    height: width * 0.6,
+    width: screenWidth * 0.6,
+    height: screenWidth * 0.6,
     top: 150,
-    left: -width * 0.3,
+    left: -screenWidth * 0.3,
   },
   safeArea: {
     flex: 1,
@@ -201,6 +206,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
     paddingBottom: spacing.xxl,
+    alignItems: 'center',
   },
   logoSection: {
     alignItems: 'center',
@@ -228,14 +234,20 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   formCard: {
+    width: '100%',
+    maxWidth: 420,
     backgroundColor: colors.backgroundCard,
     borderRadius: borderRadius.xl,
-    padding: spacing.xl,
+    padding: spacing.md,
     shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.2,
     shadowRadius: 20,
     elevation: 10,
+  },
+  buttonContainer: {
+    width: '100%',
+    marginBottom: spacing.xs,
   },
   title: {
     fontSize: typography.sizes['2xl'],
@@ -250,7 +262,8 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   inputContainer: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
+    maxWidth: '100%',
   },
   divider: {
     flexDirection: 'row',
