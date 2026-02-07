@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { primary, textSecondary } from '../../constants/Colors';
 
 export default function DriverLayout() {
@@ -79,8 +79,8 @@ const styles = StyleSheet.create({
     tabBar: {
         position: 'absolute',
         bottom: 20,
-        left: 20,
-        right: 20,
+        width: '100%',
+        alignSelf: 'center',
         height: 65,
         borderRadius: 20,
         backgroundColor: 'rgba(255, 255, 255, 0.85)',
@@ -91,6 +91,5 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.12,
         shadowRadius: 16,
         elevation: 6,
-        paddingBottom: Platform.OS === 'ios' ? 10 : 8,
     },
 });

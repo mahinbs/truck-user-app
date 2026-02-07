@@ -14,8 +14,8 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { Button } from '../../components/shared/Button';
 import { FloatingHeader } from '../../components/shared/FloatingHeader';
+import { StatusPill } from '../../components/shared/StatusPill';
 import {
     primary,
     surface,
@@ -49,7 +49,8 @@ export default function DriverHome() {
     const router = useRouter();
     const [isOnline, setIsOnline] = useState(false);
     const fadeAnim = useRef(new Animated.Value(0)).current;
-    const slideAnim = useRef(new Animated.Value(50)).current;
+    const slideAnim = useRef(new Animated.Value(30)).current;
+    const pulseAnim = useRef(new Animated.Value(1)).current;
 
     useEffect(() => {
         Animated.parallel([
@@ -64,7 +65,27 @@ export default function DriverHome() {
                 useNativeDriver: true,
             }),
         ]).start();
-    }, []);
+
+        // Pulsing animation for online status
+        if (isOnline) {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulseAnim, {
+                        toValue: 1.3,
+                        duration: 1000,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(pulseAnim, {
+                        toValue: 1,
+                        duration: 1000,
+                        useNativeDriver: true,
+                    }),
+                ])
+            ).start();
+        } else {
+            pulseAnim.setValue(1);
+        }
+    }, [isOnline]);
 
     return (
         <View style={styles.container}>
@@ -86,67 +107,39 @@ export default function DriverHome() {
                     contentContainerStyle={styles.content}
                     showsVerticalScrollIndicator={false}
                 >
+                    {/* Status Toggle Card */}
                     <Animated.View
                         style={{
                             opacity: fadeAnim,
                             transform: [{ translateY: slideAnim }],
                         }}
                     >
-                        {/* Earnings Summary Card */}
-                        <LinearGradient
-                            colors={['rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.5)']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={styles.summaryCard}
-                        >
-                            <BlurView intensity={20} tint="light" style={styles.summaryBlur}>
-                                <View style={styles.summaryRow}>
-                                    <View style={styles.summaryItem}>
-                                        <Text style={styles.summaryLabel}>Today's Earnings</Text>
-                                        <Text style={styles.summaryValue}>₹8,450</Text>
-                                    </View>
-                                    <View style={styles.summaryItem}>
-                                        <View style={styles.ratingContainer}>
-                                            <LinearGradient
-                                                colors={['rgba(245, 158, 11, 0.2)', 'rgba(251, 191, 36, 0.1)']}
-                                                style={styles.ratingIcon}
-                                            >
-                                                <Ionicons name="star" size={16} color="#F59E0B" />
-                                            </LinearGradient>
-                                            <View>
-                                                <Text style={[styles.ratingValue, { color: '#F59E0B' }]}>4.8</Text>
-                                                <Text style={styles.summaryLabel}>Rating</Text>
-                                            </View>
-                                        </View>
-                                    </View>
-                                </View>
-                                <View style={styles.divider} />
-                                <View style={styles.summaryRow}>
-                                    <View style={styles.summaryItem}>
-                                        <Text style={styles.summaryLabel}>Active Trips</Text>
-                                        <Text style={styles.summaryValue}>2</Text>
-                                    </View>
-                                    <View style={styles.summaryItem}>
-                                        <Text style={styles.summaryLabel}>Total Trips</Text>
-                                        <Text style={styles.summaryValue}>245</Text>
-                                    </View>
-                                </View>
-                            </BlurView>
-                        </LinearGradient>
-
-                        {/* Go Online Toggle */}
                         <LinearGradient
                             colors={isOnline
-                                ? ['rgba(16, 185, 129, 0.1)', 'rgba(52, 211, 153, 0.05)']
+                                ? ['rgba(16, 185, 129, 0.15)', 'rgba(52, 211, 153, 0.05)']
                                 : ['rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.3)']
                             }
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
                             style={styles.toggleCard}
                         >
                             <BlurView intensity={20} tint="light" style={styles.toggleBlur}>
                                 <View style={styles.toggleContent}>
                                     <View style={styles.toggleLeft}>
-                                        <View style={[styles.statusDot, isOnline && styles.statusDotOnline]}>
-                                            {isOnline && <View style={styles.statusDotPulse} />}
+                                        <View style={styles.statusContainer}>
+                                            <Animated.View
+                                                style={[
+                                                    styles.pulseOuter,
+                                                    {
+                                                        backgroundColor: isOnline ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
+                                                        transform: [{ scale: pulseAnim }],
+                                                    }
+                                                ]}
+                                            />
+                                            <View style={[
+                                                styles.statusDot,
+                                                { backgroundColor: isOnline ? '#10B981' : textSecondary }
+                                            ]} />
                                         </View>
                                         <View>
                                             <Text style={styles.toggleTitle}>
@@ -167,9 +160,95 @@ export default function DriverHome() {
                                 </View>
                             </BlurView>
                         </LinearGradient>
+                    </Animated.View>
 
-                        {/* Available Loads */}
-                        {isOnline && (
+                    {/* Stats Cards - Quick Actions Style */}
+                    <Animated.View
+                        style={{
+                            opacity: fadeAnim,
+                            transform: [{ translateY: slideAnim }],
+                        }}
+                    >
+                        <View style={styles.statsContainer}>
+                            {/* Today's Earnings */}
+                            <TouchableOpacity
+                                style={styles.statCard}
+                                onPress={() => router.push('/(driver)/earnings')}
+                            >
+                                <LinearGradient
+                                    colors={['rgba(16, 185, 129, 0.15)', 'rgba(52, 211, 153, 0.05)']}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 1 }}
+                                    style={styles.statGradientBg}
+                                >
+                                    <BlurView intensity={30} tint="light" style={styles.statBlur}>
+                                        <LinearGradient
+                                            colors={['rgba(16, 185, 129, 0.2)', 'rgba(52, 211, 153, 0.1)']}
+                                            style={styles.statIconBg}
+                                        >
+                                            <Ionicons name="wallet-outline" size={22} color="#10B981" />
+                                        </LinearGradient>
+                                        <Text style={[styles.statValue, { color: '#10B981' }]}>₹8,450</Text>
+                                        <Text style={styles.statLabel}>Today's Earnings</Text>
+                                    </BlurView>
+                                </LinearGradient>
+                            </TouchableOpacity>
+
+                            {/* Active Trips */}
+                            <TouchableOpacity
+                                style={styles.statCard}
+                                onPress={() => router.push('/(driver)/active-trip')}
+                            >
+                                <LinearGradient
+                                    colors={['rgba(59, 130, 246, 0.15)', 'rgba(96, 165, 250, 0.05)']}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 1 }}
+                                    style={styles.statGradientBg}
+                                >
+                                    <BlurView intensity={30} tint="light" style={styles.statBlur}>
+                                        <LinearGradient
+                                            colors={['rgba(59, 130, 246, 0.2)', 'rgba(96, 165, 250, 0.1)']}
+                                            style={styles.statIconBg}
+                                        >
+                                            <Ionicons name="navigate-outline" size={22} color={primary} />
+                                        </LinearGradient>
+                                        <Text style={styles.statValue}>2</Text>
+                                        <Text style={styles.statLabel}>Active Trips</Text>
+                                    </BlurView>
+                                </LinearGradient>
+                            </TouchableOpacity>
+
+                            {/* Rating */}
+                            <View style={styles.statCard}>
+                                <LinearGradient
+                                    colors={['rgba(245, 158, 11, 0.15)', 'rgba(251, 191, 36, 0.05)']}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 1 }}
+                                    style={styles.statGradientBg}
+                                >
+                                    <BlurView intensity={30} tint="light" style={styles.statBlur}>
+                                        <LinearGradient
+                                            colors={['rgba(245, 158, 11, 0.2)', 'rgba(251, 191, 36, 0.1)']}
+                                            style={styles.statIconBg}
+                                        >
+                                            <Ionicons name="star-outline" size={22} color="#F59E0B" />
+                                        </LinearGradient>
+                                        <Text style={[styles.statValue, { color: '#F59E0B' }]}>4.8</Text>
+                                        <Text style={styles.statLabel}>Rating</Text>
+                                    </BlurView>
+                                </LinearGradient>
+                            </View>
+                        </View>
+                    </Animated.View>
+
+                    {/* Available Loads */}
+                    {isOnline && (
+                        <Animated.View
+                            style={{
+                                opacity: fadeAnim,
+                                transform: [{ translateY: slideAnim }],
+                            }}
+                        >
                             <View style={styles.section}>
                                 <View style={styles.sectionHeader}>
                                     <Text style={styles.sectionTitle}>Available Loads</Text>
@@ -183,6 +262,7 @@ export default function DriverHome() {
                                         key={load.id}
                                         activeOpacity={0.9}
                                         onPress={() => router.push(`/(driver)/load-details?id=${load.id}`)}
+                                        style={styles.loadCardWrapper}
                                     >
                                         <LinearGradient
                                             colors={['rgba(59, 130, 246, 0.08)', 'rgba(96, 165, 250, 0.04)']}
@@ -190,59 +270,65 @@ export default function DriverHome() {
                                             end={{ x: 1, y: 1 }}
                                             style={styles.loadCard}
                                         >
-                                            <BlurView intensity={40} tint="light" style={styles.loadBlur}>
+                                            <BlurView intensity={35} tint="light" style={styles.loadBlur}>
                                                 <View style={styles.loadHeader}>
-                                                    <View style={styles.routeContainer}>
-                                                        <Text style={styles.loadRoute}>{load.route}</Text>
-                                                        <Text style={styles.loadEarnings}>{load.earnings}</Text>
-                                                    </View>
+                                                    <Text style={styles.loadRoute}>{load.route}</Text>
+                                                    <StatusPill status="pending" />
                                                 </View>
 
                                                 <View style={styles.loadDetails}>
                                                     <View style={styles.loadDetailItem}>
                                                         <LinearGradient
-                                                            colors={['rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.4)']}
-                                                            style={styles.detailIcon}
+                                                            colors={['rgba(59, 130, 246, 0.15)', 'rgba(96, 165, 250, 0.1)']}
+                                                            style={styles.loadDetailIcon}
                                                         >
-                                                            <Ionicons name="navigate-outline" size={16} color={textSecondary} />
+                                                            <Ionicons name="navigate-outline" size={14} color={primary} />
                                                         </LinearGradient>
                                                         <Text style={styles.loadDetailText}>{load.distance}</Text>
                                                     </View>
                                                     <View style={styles.loadDetailItem}>
                                                         <LinearGradient
-                                                            colors={['rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.4)']}
-                                                            style={styles.detailIcon}
+                                                            colors={['rgba(245, 158, 11, 0.15)', 'rgba(251, 191, 36, 0.1)']}
+                                                            style={styles.loadDetailIcon}
                                                         >
-                                                            <Ionicons name="cube-outline" size={16} color={textSecondary} />
+                                                            <Ionicons name="cube-outline" size={14} color="#F59E0B" />
                                                         </LinearGradient>
                                                         <Text style={styles.loadDetailText}>{load.weight}</Text>
                                                     </View>
                                                     <View style={styles.loadDetailItem}>
                                                         <LinearGradient
-                                                            colors={['rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.4)']}
-                                                            style={styles.detailIcon}
+                                                            colors={['rgba(16, 185, 129, 0.15)', 'rgba(52, 211, 153, 0.1)']}
+                                                            style={styles.loadDetailIcon}
                                                         >
-                                                            <Ionicons name="time-outline" size={16} color={textSecondary} />
+                                                            <Ionicons name="time-outline" size={14} color="#10B981" />
                                                         </LinearGradient>
                                                         <Text style={styles.loadDetailText}>{load.pickupTime}</Text>
                                                     </View>
                                                 </View>
 
-                                                <Button
-                                                    title="View Details"
-                                                    onPress={() => router.push(`/(driver)/load-details?id=${load.id}`)}
-                                                    variant="secondary"
-                                                    style={styles.viewButton}
-                                                />
+                                                <View style={styles.loadFooter}>
+                                                    <Text style={styles.loadPrice}>{load.earnings}</Text>
+                                                    <View style={styles.viewButton}>
+                                                        <Text style={styles.viewButtonText}>View Details</Text>
+                                                        <Ionicons name="arrow-forward" size={14} color={primary} />
+                                                    </View>
+                                                </View>
                                             </BlurView>
                                         </LinearGradient>
                                     </TouchableOpacity>
                                 ))}
                             </View>
-                        )}
+                        </Animated.View>
+                    )}
 
-                        {/* Offline Message */}
-                        {!isOnline && (
+                    {/* Offline Message */}
+                    {!isOnline && (
+                        <Animated.View
+                            style={{
+                                opacity: fadeAnim,
+                                transform: [{ translateY: slideAnim }],
+                            }}
+                        >
                             <View style={styles.offlineMessage}>
                                 <LinearGradient
                                     colors={['rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.2)']}
@@ -255,8 +341,8 @@ export default function DriverHome() {
                                     Go online to start receiving new load offers and track your earnings.
                                 </Text>
                             </View>
-                        )}
-                    </Animated.View>
+                        </Animated.View>
+                    )}
                 </ScrollView>
             </SafeAreaView>
         </View>
@@ -274,72 +360,22 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     content: {
-        paddingBottom: 100,
-        paddingTop: 10,
+        paddingBottom: 120,
     },
-    summaryCard: {
-        margin: theme.spacing.base,
-        borderRadius: theme.borderRadius.card,
-        overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.3)',
-        ...theme.shadows.card,
-    },
-    summaryBlur: {
-        padding: theme.spacing.lg,
-    },
-    summaryRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    summaryItem: {
-        flex: 1,
-    },
-    summaryLabel: {
-        ...theme.typography.caption,
-        fontSize: 11,
-        color: textSecondary,
-        marginBottom: 2,
-    },
-    summaryValue: {
-        ...theme.typography.h2,
-        fontSize: 24,
-        color: text,
-        fontWeight: '700',
-    },
-    divider: {
-        height: 1,
-        backgroundColor: 'rgba(226, 232, 240, 0.5)',
-        marginVertical: theme.spacing.md,
-    },
-    ratingContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: theme.spacing.sm,
-    },
-    ratingIcon: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    },
-    ratingValue: {
-        ...theme.typography.h3,
-        fontSize: 18,
-        fontWeight: '700',
-    },
+    // Toggle Card
     toggleCard: {
-        marginHorizontal: theme.spacing.base,
-        borderRadius: theme.borderRadius.card,
-        marginBottom: theme.spacing.base,
+        marginHorizontal: theme.spacing.lg,
+        borderRadius: 20,
+        marginBottom: theme.spacing.md,
+        marginTop: theme.spacing.md,
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.3)',
-        overflow: 'hidden',
+        ...theme.shadows.medium,
+        elevation: 5,
     },
     toggleBlur: {
-        padding: theme.spacing.base,
+        padding: theme.spacing.md,
+        borderRadius: 20,
     },
     toggleContent: {
         flexDirection: 'row',
@@ -352,109 +388,153 @@ const styles = StyleSheet.create({
         flex: 1,
         gap: theme.spacing.md,
     },
+    statusContainer: {
+        width: 36,
+        height: 36,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     statusDot: {
         width: 12,
         height: 12,
         borderRadius: 6,
-        backgroundColor: '#CBD5E1',
-        justifyContent: 'center',
-        alignItems: 'center',
     },
-    statusDotOnline: {
-        backgroundColor: '#10B981',
-        ...theme.shadows.glow,
-        shadowColor: '#10B981',
-    },
-    statusDotPulse: {
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        backgroundColor: 'rgba(16, 185, 129, 0.3)',
+    pulseOuter: {
         position: 'absolute',
+        width: 36,
+        height: 36,
+        borderRadius: 18,
     },
     toggleTitle: {
-        ...theme.typography.bodyMedium,
         fontSize: 16,
         color: text,
-        fontWeight: '600',
+        fontWeight: '700',
         marginBottom: 2,
+        fontFamily: 'PlusJakartaSans_700Bold',
     },
     toggleSubtitle: {
-        ...theme.typography.caption,
         fontSize: 12,
         color: textSecondary,
+        fontFamily: 'PlusJakartaSans_500Medium',
     },
+    // Stats Styles
+    statsContainer: {
+        flexDirection: 'row',
+        paddingHorizontal: theme.spacing.lg,
+        gap: theme.spacing.md,
+        marginBottom: theme.spacing.xl,
+    },
+    statCard: {
+        flex: 1,
+        borderRadius: 18,
+        backgroundColor: surface,
+        ...theme.shadows.medium,
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
+    },
+    statGradientBg: {
+        borderRadius: 18,
+    },
+    statBlur: {
+        padding: theme.spacing.md,
+        alignItems: 'center',
+        borderRadius: 18,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.4)',
+    },
+    statIconBg: {
+        width: 44,
+        height: 44,
+        borderRadius: 14,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: theme.spacing.sm,
+    },
+    statValue: {
+        fontSize: 16,
+        color: text,
+        fontWeight: '700',
+        marginBottom: 2,
+        fontFamily: 'PlusJakartaSans_700Bold',
+        textAlign: 'center',
+    },
+    statLabel: {
+        fontSize: 10,
+        color: textSecondary,
+        fontWeight: '500',
+        textAlign: 'center',
+    },
+    // Available Loads Styles
     section: {
-        marginTop: theme.spacing.md,
-        paddingHorizontal: theme.spacing.base,
+        marginBottom: theme.spacing.xl,
     },
     sectionHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: theme.spacing.base,
+        paddingHorizontal: theme.spacing.lg,
+        marginBottom: theme.spacing.md,
     },
     sectionTitle: {
-        ...theme.typography.h3,
-        fontSize: 18,
+        fontSize: 16,
         color: text,
         fontWeight: '600',
+        fontFamily: 'PlusJakartaSans_600SemiBold',
     },
     seeAllText: {
-        ...theme.typography.bodyMedium,
         fontSize: 14,
         color: primary,
-        fontWeight: '500',
+        fontWeight: '600',
+    },
+    loadCardWrapper: {
+        marginHorizontal: theme.spacing.lg,
+        marginBottom: theme.spacing.md,
     },
     loadCard: {
-        borderRadius: theme.borderRadius.card,
-        overflow: 'hidden',
-        marginBottom: theme.spacing.base,
+        borderRadius: 20,
+        backgroundColor: surface,
+        ...theme.shadows.medium,
+        elevation: 5,
+        shadowColor: 'rgba(59, 130, 246, 0.2)',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.12,
+        shadowRadius: 10,
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.4)',
-        ...theme.shadows.card,
+        borderColor: 'rgba(59, 130, 246, 0.15)',
     },
     loadBlur: {
-        padding: theme.spacing.base,
+        padding: theme.spacing.md,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.3)',
     },
     loadHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: theme.spacing.base,
-    },
-    routeContainer: {
-        flex: 1,
+        alignItems: 'center',
+        marginBottom: theme.spacing.sm,
     },
     loadRoute: {
-        ...theme.typography.h3,
-        fontSize: 18,
+        fontSize: 16,
         color: text,
-        fontWeight: '600',
-        marginBottom: 4,
-    },
-    loadEarnings: {
-        ...theme.typography.h3,
-        fontSize: 20,
-        color: primary,
         fontWeight: '700',
+        fontFamily: 'PlusJakartaSans_700Bold',
     },
     loadDetails: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: theme.spacing.base,
-        marginBottom: theme.spacing.base,
+        gap: theme.spacing.sm,
+        marginBottom: theme.spacing.md,
     },
     loadDetailItem: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: theme.spacing.xs,
-        backgroundColor: 'rgba(255, 255, 255, 0.5)',
-        paddingVertical: 4,
-        paddingHorizontal: 8,
-        borderRadius: 8,
     },
-    detailIcon: {
+    loadDetailIcon: {
         width: 24,
         height: 24,
         borderRadius: 12,
@@ -462,14 +542,37 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     loadDetailText: {
-        ...theme.typography.caption,
         fontSize: 12,
-        color: text,
+        color: textSecondary,
         fontWeight: '500',
+        fontFamily: 'PlusJakartaSans_500Medium',
+    },
+    loadFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingTop: theme.spacing.sm,
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(226, 232, 240, 0.3)',
+    },
+    loadPrice: {
+        fontSize: 18,
+        color: primary,
+        fontWeight: '700',
+        fontFamily: 'PlusJakartaSans_700Bold',
     },
     viewButton: {
-        borderRadius: theme.borderRadius.button,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
     },
+    viewButtonText: {
+        fontSize: 13,
+        color: primary,
+        fontWeight: '600',
+        fontFamily: 'PlusJakartaSans_600SemiBold',
+    },
+    // Offline Message
     offlineMessage: {
         alignItems: 'center',
         justifyContent: 'center',
@@ -485,18 +588,18 @@ const styles = StyleSheet.create({
         marginBottom: theme.spacing.lg,
     },
     offlineTitle: {
-        ...theme.typography.h3,
         fontSize: 18,
         color: text,
         fontWeight: '600',
         marginBottom: theme.spacing.xs,
         textAlign: 'center',
+        fontFamily: 'PlusJakartaSans_600SemiBold',
     },
     offlineText: {
-        ...theme.typography.body,
         fontSize: 14,
         color: textSecondary,
         textAlign: 'center',
         lineHeight: 20,
+        fontFamily: 'PlusJakartaSans_400Regular',
     },
 });

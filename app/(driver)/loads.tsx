@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import {
+    Dimensions,
     SafeAreaView,
     ScrollView,
     StyleSheet,
@@ -9,20 +11,21 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { Card } from '../../components/shared/Card';
 import { StatusPill } from '../../components/shared/StatusPill';
-import { background, primary, surface, text, textSecondary } from '../../constants/Colors';
+import { primary, surface, text, textSecondary } from '../../constants/Colors';
 import { theme } from '../../constants/theme';
+
+const { width } = Dimensions.get('window');
 
 const loads = [
     {
         id: '1',
         route: 'Mumbai → Delhi',
-        status: 'active' as const,
+        status: 'pending' as const,
         distance: '1,450 km',
         weight: '8 Tons',
         earnings: '₹32,500',
-        pickupTime: 'Tomorrow, 10:00 AM',
+        pickupTime: 'Today, 10:00 AM',
     },
     {
         id: '2',
@@ -33,189 +36,305 @@ const loads = [
         earnings: '₹22,000',
         pickupTime: 'Dec 10, 2026',
     },
+    {
+        id: '3',
+        route: 'Chennai → Hyderabad',
+        status: 'active' as const,
+        distance: '650 km',
+        weight: '12 Tons',
+        earnings: '₹18,500',
+        pickupTime: 'Today, 2:00 PM',
+    },
+    {
+        id: '4',
+        route: 'Kolkata → Mumbai',
+        status: 'in-transit' as const,
+        distance: '1,800 km',
+        weight: '15 Tons',
+        earnings: '₹42,000',
+        pickupTime: 'Yesterday, 8:00 AM',
+    },
 ];
+
+type TabType = 'available' | 'active' | 'completed';
 
 export default function Loads() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = React.useState<'available' | 'accepted' | 'completed'>('available');
+    const [activeTab, setActiveTab] = useState<TabType>('available');
 
     const filteredLoads = loads.filter((l) => {
         if (activeTab === 'available') return l.status === 'pending';
-        if (activeTab === 'accepted') return l.status === 'active' || l.status === 'in-transit';
+        if (activeTab === 'active') return l.status === 'active' || l.status === 'in-transit';
         if (activeTab === 'completed') return l.status === 'completed';
         return false;
     });
 
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>My Loads</Text>
-            </View>
+        <View style={styles.container}>
+            <LinearGradient
+                colors={theme.gradients.background as any}
+                style={StyleSheet.absoluteFillObject}
+            />
 
-            <View style={styles.tabsContainer}>
-                <TouchableOpacity
-                    style={[styles.tab, activeTab === 'available' && styles.tabActive]}
-                    onPress={() => setActiveTab('available')}
+            <SafeAreaView style={styles.safeArea}>
+                {/* Header */}
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
+                        <Ionicons name="arrow-back" size={24} color={text} />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>My Loads</Text>
+                    <TouchableOpacity style={styles.iconButton}>
+                        <Ionicons name="filter" size={24} color={primary} />
+                    </TouchableOpacity>
+                </View>
+
+                {/* Tabs */}
+                <View style={styles.tabsContainer}>
+                    {(['available', 'active', 'completed'] as TabType[]).map((tab) => (
+                        <TouchableOpacity
+                            key={tab}
+                            style={[
+                                styles.tab,
+                                activeTab === tab && styles.tabActive
+                            ]}
+                            onPress={() => setActiveTab(tab)}
+                        >
+                            <Text style={[
+                                styles.tabText,
+                                activeTab === tab && styles.tabTextActive
+                            ]}>
+                                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                            </Text>
+                            {activeTab === tab && (
+                                <View style={styles.activeIndicator} />
+                            )}
+                        </TouchableOpacity>
+                    ))}
+                </View>
+
+                {/* Load List */}
+                <ScrollView
+                    style={styles.scrollView}
+                    contentContainerStyle={styles.content}
+                    showsVerticalScrollIndicator={false}
                 >
-                    <Text style={[styles.tabText, activeTab === 'available' && styles.tabTextActive]}>
-                        Available
-                    </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.tab, activeTab === 'accepted' && styles.tabActive]}
-                    onPress={() => setActiveTab('accepted')}
-                >
-                    <Text style={[styles.tabText, activeTab === 'accepted' && styles.tabTextActive]}>
-                        Accepted
-                    </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.tab, activeTab === 'completed' && styles.tabActive]}
-                    onPress={() => setActiveTab('completed')}
-                >
-                    <Text style={[styles.tabText, activeTab === 'completed' && styles.tabTextActive]}>
-                        Completed
-                    </Text>
-                </TouchableOpacity>
-            </View>
+                    {filteredLoads.length > 0 ? (
+                        filteredLoads.map((load) => (
+                            <TouchableOpacity
+                                key={load.id}
+                                activeOpacity={0.9}
+                                onPress={() => router.push(`/(driver)/load-details?id=${load.id}`)}
+                                style={styles.loadCardWrapper}
+                            >
+                                <LinearGradient
+                                    colors={['rgba(59, 130, 246, 0.08)', 'rgba(96, 165, 250, 0.04)']}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 1 }}
+                                    style={styles.loadCard}
+                                >
+                                    <View style={styles.cardHeader}>
+                                        <Text style={styles.loadRoute}>{load.route}</Text>
+                                        <StatusPill status={load.status} />
+                                    </View>
 
-            <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
-                {loads.length > 0 ? (
-                    loads.map((load) => (
-                        <Card key={load.id} style={styles.loadCard}>
-                            <View style={styles.loadHeader}>
-                                <View style={styles.loadRoute}>
-                                    <Text style={styles.loadRouteText}>{load.route}</Text>
-                                </View>
-                                <StatusPill status={load.status} />
-                            </View>
+                                    <View style={styles.cardBody}>
+                                        <View style={styles.infoRow}>
+                                            <View style={styles.infoItem}>
+                                                <View style={styles.iconBox}>
+                                                    <Ionicons name="navigate-outline" size={18} color={primary} />
+                                                </View>
+                                                <Text style={styles.infoText}>{load.distance}</Text>
+                                            </View>
+                                            <View style={styles.infoItem}>
+                                                <View style={[styles.iconBox, { backgroundColor: '#FFF7ED' }]}>
+                                                    <Ionicons name="cube-outline" size={18} color="#F59E0B" />
+                                                </View>
+                                                <Text style={styles.infoText}>{load.weight}</Text>
+                                            </View>
+                                            <View style={styles.infoItem}>
+                                                <View style={[styles.iconBox, { backgroundColor: '#ECFDF5' }]}>
+                                                    <Ionicons name="time-outline" size={18} color="#10B981" />
+                                                </View>
+                                                <Text style={styles.infoText}>{load.pickupTime}</Text>
+                                            </View>
+                                        </View>
+                                    </View>
 
-                            <View style={styles.loadDetails}>
-                                <View style={styles.loadDetail}>
-                                    <Ionicons name="navigate-outline" size={16} color={textSecondary} />
-                                    <Text style={styles.loadDetailText}>{load.distance}</Text>
-                                </View>
-                                <View style={styles.loadDetail}>
-                                    <Ionicons name="cube-outline" size={16} color={textSecondary} />
-                                    <Text style={styles.loadDetailText}>{load.weight}</Text>
-                                </View>
-                                <View style={styles.loadDetail}>
-                                    <Ionicons name="time-outline" size={16} color={textSecondary} />
-                                    <Text style={styles.loadDetailText}>{load.pickupTime}</Text>
-                                </View>
-                            </View>
-
-                            <View style={styles.loadFooter}>
-                                <Text style={styles.loadPrice}>{load.earnings}</Text>
-                                <TouchableOpacity onPress={() => router.push(`/(driver)/load-details?id=${load.id}`)}>
-                                    <Text style={styles.viewDetailsText}>View Details →</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </Card>
-                    ))
-                ) : (
-                    <View style={styles.emptyState}>
-                        <Ionicons name="cube-outline" size={64} color={textSecondary} />
-                        <Text style={styles.emptyStateText}>No {activeTab} loads</Text>
-                    </View>
-                )}
-            </ScrollView>
-        </SafeAreaView>
+                                    <View style={styles.cardFooter}>
+                                        <Text style={styles.priceText}>{load.earnings}</Text>
+                                        <View style={styles.actionButton}>
+                                            <Text style={styles.actionButtonText}>View Details</Text>
+                                            <Ionicons name="arrow-forward" size={16} color={primary} />
+                                        </View>
+                                    </View>
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        ))
+                    ) : (
+                        <View style={styles.emptyState}>
+                            <LinearGradient
+                                colors={['rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.4)']}
+                                style={styles.emptyStateIcon}
+                            >
+                                <Ionicons name="cube-outline" size={48} color={textSecondary} />
+                            </LinearGradient>
+                            <Text style={styles.emptyStateText}>No {activeTab} loads found</Text>
+                        </View>
+                    )}
+                </ScrollView>
+            </SafeAreaView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: background,
+        backgroundColor: '#F8FAFC',
+    },
+    safeArea: {
+        flex: 1,
     },
     header: {
-        paddingHorizontal: theme.spacing.base,
-        paddingVertical: theme.spacing.lg,
-        backgroundColor: surface,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: theme.spacing.lg,
+        paddingVertical: theme.spacing.md,
     },
     headerTitle: {
-        ...theme.typography.h2,
+        fontSize: 20,
+        fontFamily: 'PlusJakartaSans_700Bold',
         color: text,
+    },
+    iconButton: {
+        width: 44,
+        height: 44,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 14,
+        backgroundColor: '#FFFFFF',
+        ...theme.shadows.light,
     },
     tabsContainer: {
         flexDirection: 'row',
-        paddingHorizontal: theme.spacing.base,
-        paddingTop: theme.spacing.base,
-        backgroundColor: surface,
-        gap: theme.spacing.sm,
+        paddingHorizontal: theme.spacing.lg,
+        marginBottom: theme.spacing.md,
+        gap: theme.spacing.md,
     },
     tab: {
-        flex: 1,
-        paddingVertical: theme.spacing.md,
+        paddingVertical: theme.spacing.sm,
+        paddingHorizontal: theme.spacing.sm,
         alignItems: 'center',
-        borderBottomWidth: 2,
-        borderBottomColor: 'transparent',
+        position: 'relative',
     },
     tabActive: {
-        borderBottomColor: primary,
+        // Active styling handled by indicator
     },
     tabText: {
-        ...theme.typography.bodyMedium,
+        fontSize: 15,
+        fontFamily: 'PlusJakartaSans_500Medium',
         color: textSecondary,
     },
     tabTextActive: {
+        fontFamily: 'PlusJakartaSans_700Bold',
         color: primary,
+    },
+    activeIndicator: {
+        position: 'absolute',
+        bottom: 0,
+        width: '100%',
+        height: 3,
+        backgroundColor: primary,
+        borderRadius: 2,
     },
     scrollView: {
         flex: 1,
     },
     content: {
-        paddingHorizontal: theme.spacing.base,
-        paddingTop: theme.spacing.base,
-        paddingBottom: 100,
+        padding: theme.spacing.lg,
+        paddingBottom: 110,
+    },
+    loadCardWrapper: {
+        marginBottom: theme.spacing.lg,
     },
     loadCard: {
-        padding: theme.spacing.base,
-        marginBottom: theme.spacing.md,
+        padding: theme.spacing.md,
+        borderRadius: 20,
+        elevation: 5,
+        shadowColor: 'rgba(59, 130, 246, 0.2)',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.12,
+        shadowRadius: 10,
+        borderWidth: 1,
+        borderColor: 'rgba(59, 130, 246, 0.15)',
+        backgroundColor: surface,
     },
-    loadHeader: {
+    cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: theme.spacing.md,
     },
     loadRoute: {
-        flex: 1,
-    },
-    loadRouteText: {
-        ...theme.typography.h3,
+        fontSize: 18,
+        fontFamily: 'PlusJakartaSans_700Bold',
         color: text,
+        flex: 1,
+        marginRight: theme.spacing.sm,
     },
-    loadDetails: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: theme.spacing.base,
+    cardBody: {
+        paddingBottom: theme.spacing.md,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(226, 232, 240, 0.5)',
         marginBottom: theme.spacing.md,
     },
-    loadDetail: {
+    infoRow: {
+        flexDirection: 'row',
+        gap: theme.spacing.sm,
+        flexWrap: 'wrap',
+    },
+    infoItem: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: theme.spacing.xs,
+        flex: 1,
     },
-    loadDetailText: {
-        ...theme.typography.caption,
+    iconBox: {
+        width: 32,
+        height: 32,
+        borderRadius: 10,
+        backgroundColor: '#EFF6FF',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    infoText: {
+        fontSize: 12,
+        fontFamily: 'PlusJakartaSans_500Medium',
         color: textSecondary,
     },
-    loadFooter: {
+    cardFooter: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingTop: theme.spacing.md,
-        borderTopWidth: 1,
-        borderTopColor: '#E2E8F0',
     },
-    loadPrice: {
-        ...theme.typography.h3,
+    priceText: {
+        fontSize: 20,
+        fontFamily: 'PlusJakartaSans_700Bold',
         color: primary,
     },
-    viewDetailsText: {
-        ...theme.typography.bodyMedium,
+    actionButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 12,
+    },
+    actionButtonText: {
+        fontSize: 13,
+        fontFamily: 'PlusJakartaSans_600SemiBold',
         color: primary,
     },
     emptyState: {
@@ -223,9 +342,17 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingVertical: theme.spacing.xxxl,
     },
+    emptyStateIcon: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: theme.spacing.lg,
+    },
     emptyStateText: {
-        ...theme.typography.body,
+        fontSize: 16,
+        fontFamily: 'PlusJakartaSans_500Medium',
         color: textSecondary,
-        marginTop: theme.spacing.base,
     },
 });

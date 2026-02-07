@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
@@ -15,7 +14,6 @@ import {
 } from 'react-native';
 import {
     primary,
-    surface,
     text,
     textSecondary
 } from '../../constants/Colors';
@@ -26,46 +24,44 @@ const { width } = Dimensions.get('window');
 export default function DriverProfile() {
     const router = useRouter();
     const fadeAnim = useRef(new Animated.Value(0)).current;
-    const slideAnim = useRef(new Animated.Value(50)).current;
+    const slideAnim = useRef(new Animated.Value(20)).current;
 
     useEffect(() => {
         Animated.parallel([
             Animated.timing(fadeAnim, {
                 toValue: 1,
-                duration: 800,
+                duration: 600,
                 useNativeDriver: true,
             }),
             Animated.timing(slideAnim, {
                 toValue: 0,
-                duration: 800,
+                duration: 600,
                 useNativeDriver: true,
             }),
         ]).start();
     }, []);
 
+    const MenuItem = ({ icon, label, subLabel, color = primary, showDivider = true, onPress }: any) => (
+        <>
+            <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+                <View style={styles.menuItemLeft}>
+                    <View style={[styles.menuIcon, { backgroundColor: `${color}15` }]}>
+                        <Ionicons name={icon} size={20} color={color} />
+                    </View>
+                    <View>
+                        <Text style={styles.menuText}>{label}</Text>
+                        {subLabel && <Text style={styles.menuSubText}>{subLabel}</Text>}
+                    </View>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={textSecondary} />
+            </TouchableOpacity>
+            {showDivider && <View style={styles.menuDivider} />}
+        </>
+    );
+
     const handleLogout = () => {
         router.replace('/');
     };
-
-    const renderMenuItem = (icon: any, title: string, subtitle?: string, onPress?: () => void, color: string = primary) => (
-        <TouchableOpacity
-            style={styles.menuItem}
-            activeOpacity={0.7}
-            onPress={onPress}
-        >
-            <LinearGradient
-                colors={['rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.4)']}
-                style={styles.menuIconContainer}
-            >
-                <Ionicons name={icon} size={20} color={color} />
-            </LinearGradient>
-            <View style={styles.menuTextContainer}>
-                <Text style={styles.menuTitle}>{title}</Text>
-                {subtitle && <Text style={styles.menuSubtitle}>{subtitle}</Text>}
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={textSecondary} />
-        </TouchableOpacity>
-    );
 
     return (
         <View style={styles.container}>
@@ -75,12 +71,18 @@ export default function DriverProfile() {
             />
 
             <SafeAreaView style={styles.safeArea}>
+                {/* Header */}
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                    <TouchableOpacity
+                        onPress={() => router.back()}
+                        style={styles.iconButton}
+                    >
                         <Ionicons name="arrow-back" size={24} color={text} />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Profile</Text>
-                    <View style={styles.placeholderButton} />
+                    <TouchableOpacity style={styles.iconButton}>
+                        <Ionicons name="create-outline" size={24} color={primary} />
+                    </TouchableOpacity>
                 </View>
 
                 <ScrollView
@@ -95,112 +97,95 @@ export default function DriverProfile() {
                         }}
                     >
                         {/* Profile Info */}
-                        <LinearGradient
-                            colors={['rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.5)']}
-                            style={styles.profileCard}
-                        >
-                            <BlurView intensity={20} tint="light" style={styles.profileBlur}>
-                                <View style={styles.avatarContainer}>
-                                    <LinearGradient
-                                        colors={theme.gradients.primary as any}
-                                        style={styles.avatar}
-                                    >
+                        <View style={styles.profileSection}>
+                            <View style={styles.avatarContainer}>
+                                <LinearGradient
+                                    colors={theme.gradients.primary as any}
+                                    style={styles.avatarGradient}
+                                >
+                                    <View style={styles.avatarInner}>
                                         <Text style={styles.avatarText}>RK</Text>
-                                    </LinearGradient>
-                                    <View style={styles.editBadge}>
-                                        <Ionicons name="pencil" size={12} color={surface} />
                                     </View>
+                                </LinearGradient>
+                                <View style={styles.verifiedBadge}>
+                                    <Ionicons name="checkmark-circle" size={20} color="#10B981" />
                                 </View>
-                                <Text style={styles.name}>Rajesh Kumar</Text>
-                                <Text style={styles.role}>Professional Driver</Text>
+                            </View>
 
-                                <View style={styles.infoRow}>
-                                    <View style={styles.infoItem}>
-                                        <Ionicons name="call-outline" size={14} color={textSecondary} />
-                                        <Text style={styles.infoText}>+91 98765 43210</Text>
-                                    </View>
-                                    <View style={styles.infoDivider} />
-                                    <View style={styles.infoItem}>
-                                        <Ionicons name="mail-outline" size={14} color={textSecondary} />
-                                        <Text style={styles.infoText}>rajesh.k@example.com</Text>
-                                    </View>
-                                </View>
+                            <Text style={styles.userName}>Rajesh Kumar</Text>
+                            <Text style={styles.userRole}>Professional Driver</Text>
 
-                                <View style={styles.statsRow}>
-                                    <View style={styles.statItem}>
-                                        <Text style={styles.statValue}>4.8</Text>
-                                        <Text style={styles.statLabel}>Rating</Text>
-                                    </View>
-                                    <View style={styles.statDivider} />
-                                    <View style={styles.statItem}>
-                                        <Text style={styles.statValue}>245</Text>
-                                        <Text style={styles.statLabel}>Trips</Text>
-                                    </View>
-                                    <View style={styles.statDivider} />
-                                    <View style={styles.statItem}>
-                                        <Text style={styles.statValue}>2.5y</Text>
-                                        <Text style={styles.statLabel}>Exp</Text>
-                                    </View>
-                                </View>
-                            </BlurView>
-                        </LinearGradient>
-
-                        {/* Truck Details */}
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Truck Information</Text>
-                            <LinearGradient
-                                colors={['rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.3)']}
-                                style={styles.menuCard}
-                            >
-                                <BlurView intensity={10} tint="light" style={styles.menuBlur}>
-                                    {renderMenuItem('car-outline', 'Truck Details', 'Tata Prima 5530.S')}
-                                    <View style={styles.menuDivider} />
-                                    {renderMenuItem('document-text-outline', 'Documents', 'RC, Insurance, Permit', undefined, '#F59E0B')}
-                                </BlurView>
-                            </LinearGradient>
+                            <View style={styles.contactInfo}>
+                                <Text style={styles.contactText}>rajesh.k@example.com</Text>
+                                <View style={styles.contactDot} />
+                                <Text style={styles.contactText}>+91 98765 43210</Text>
+                            </View>
                         </View>
 
-                        {/* Bank Details */}
+                        {/* Stats */}
+                        <View style={styles.statsContainer}>
+                            <View style={styles.statCard}>
+                                <Text style={styles.statValue}>245</Text>
+                                <Text style={styles.statLabel}>Trips</Text>
+                            </View>
+                            <View style={styles.statDivider} />
+                            <View style={styles.statCard}>
+                                <Text style={[styles.statValue, { color: '#F59E0B' }]}>4.8</Text>
+                                <Text style={styles.statLabel}>Rating</Text>
+                            </View>
+                            <View style={styles.statDivider} />
+                            <View style={styles.statCard}>
+                                <Text style={[styles.statValue, { color: primary }]}>2.5y</Text>
+                                <Text style={styles.statLabel}>Exp</Text>
+                            </View>
+                        </View>
+
+                        {/* Truck Information */}
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Truck Information</Text>
+                            <View style={styles.menuContainer}>
+                                <MenuItem
+                                    icon="car-outline"
+                                    label="Truck Details"
+                                    subLabel="Tata Prima 5530.S"
+                                />
+                                <MenuItem
+                                    icon="document-text-outline"
+                                    label="Documents"
+                                    subLabel="RC, Insurance, Permit"
+                                    color="#F59E0B"
+                                    showDivider={false}
+                                />
+                            </View>
+                        </View>
+
+                        {/* Banking */}
                         <View style={styles.section}>
                             <Text style={styles.sectionTitle}>Banking</Text>
-                            <LinearGradient
-                                colors={['rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.3)']}
-                                style={styles.menuCard}
-                            >
-                                <BlurView intensity={10} tint="light" style={styles.menuBlur}>
-                                    {renderMenuItem('card-outline', 'Bank Account', 'HDFC Bank •••• 4589', undefined, '#10B981')}
-                                </BlurView>
-                            </LinearGradient>
+                            <View style={styles.menuContainer}>
+                                <MenuItem
+                                    icon="card-outline"
+                                    label="Bank Account"
+                                    subLabel="HDFC Bank •••• 4589"
+                                    color="#10B981"
+                                    showDivider={false}
+                                />
+                            </View>
                         </View>
 
                         {/* Support */}
                         <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Support</Text>
-                            <LinearGradient
-                                colors={['rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.3)']}
-                                style={styles.menuCard}
-                            >
-                                <BlurView intensity={10} tint="light" style={styles.menuBlur}>
-                                    {renderMenuItem('help-circle-outline', 'Help & Support')}
-                                    <View style={styles.menuDivider} />
-                                    {renderMenuItem('settings-outline', 'Settings')}
-                                </BlurView>
-                            </LinearGradient>
+                            <Text style={styles.sectionTitle}>Support & Settings</Text>
+                            <View style={styles.menuContainer}>
+                                <MenuItem icon="help-circle-outline" label="Help & Support" color="#F59E0B" />
+                                <MenuItem icon="settings-outline" label="Settings" showDivider={false} />
+                            </View>
                         </View>
 
                         {/* Logout */}
-                        <TouchableOpacity
-                            style={styles.logoutButton}
-                            onPress={handleLogout}
-                            activeOpacity={0.8}
-                        >
-                            <LinearGradient
-                                colors={['rgba(239, 68, 68, 0.1)', 'rgba(239, 68, 68, 0.05)']}
-                                style={styles.logoutGradient}
-                            >
-                                <Ionicons name="log-out-outline" size={20} color="#EF4444" />
-                                <Text style={styles.logoutText}>Logout</Text>
-                            </LinearGradient>
+                        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                            <Ionicons name="log-out-outline" size={20} color="#EF4444" />
+                            <Text style={styles.logoutText}>Log Out</Text>
                         </TouchableOpacity>
 
                         <Text style={styles.versionText}>Version 1.0.0</Text>
@@ -214,6 +199,7 @@ export default function DriverProfile() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#F8FAFC',
     },
     safeArea: {
         flex: 1,
@@ -222,219 +208,206 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: theme.spacing.base,
+        paddingHorizontal: theme.spacing.lg,
         paddingVertical: theme.spacing.md,
     },
-    backButton: {
+    headerTitle: {
+        fontSize: 18,
+        fontFamily: 'PlusJakartaSans_700Bold',
+        color: text,
+    },
+    iconButton: {
         width: 40,
         height: 40,
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    },
-    placeholderButton: {
-        width: 40,
-    },
-    headerTitle: {
-        ...theme.typography.h2,
-        fontSize: 20,
-        color: text,
-        fontWeight: '700',
+        backgroundColor: '#FFFFFF',
+        ...theme.shadows.light,
     },
     scrollView: {
         flex: 1,
     },
     content: {
-        paddingHorizontal: theme.spacing.base,
-        paddingTop: theme.spacing.base,
-        paddingBottom: 100,
+        paddingBottom: 110,
     },
-    profileCard: {
-        borderRadius: theme.borderRadius.card,
-        overflow: 'hidden',
-        marginBottom: theme.spacing.xl,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.4)',
-        ...theme.shadows.card,
-    },
-    profileBlur: {
-        padding: theme.spacing.lg,
+    profileSection: {
         alignItems: 'center',
+        marginVertical: theme.spacing.xl,
     },
     avatarContainer: {
-        position: 'relative',
         marginBottom: theme.spacing.md,
+        position: 'relative',
     },
-    avatar: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
+    avatarGradient: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        padding: 4,
+        ...theme.shadows.medium,
+    },
+    avatarInner: {
+        flex: 1,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 46,
         justifyContent: 'center',
         alignItems: 'center',
-        ...theme.shadows.glow,
     },
     avatarText: {
-        ...theme.typography.h1,
-        color: surface,
         fontSize: 32,
+        fontFamily: 'PlusJakartaSans_800ExtraBold',
+        color: primary,
     },
-    editBadge: {
+    verifiedBadge: {
         position: 'absolute',
         bottom: 0,
         right: 0,
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        backgroundColor: primary,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 2,
-        borderColor: surface,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 12,
+        padding: 2,
     },
-    name: {
-        ...theme.typography.h2,
+    userName: {
         fontSize: 24,
+        fontFamily: 'PlusJakartaSans_700Bold',
         color: text,
         marginBottom: 4,
     },
-    role: {
-        ...theme.typography.body,
-        color: primary,
-        fontWeight: '600',
+    userRole: {
+        fontSize: 14,
+        fontFamily: 'PlusJakartaSans_500Medium',
+        color: textSecondary,
         marginBottom: theme.spacing.md,
     },
-    infoRow: {
+    contactInfo: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: theme.spacing.lg,
-        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+        backgroundColor: '#FFFFFF',
         paddingVertical: 8,
         paddingHorizontal: 16,
         borderRadius: 20,
+        ...theme.shadows.light,
     },
-    infoItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-    },
-    infoText: {
-        ...theme.typography.caption,
+    contactText: {
+        fontSize: 12,
         color: textSecondary,
+        fontFamily: 'PlusJakartaSans_500Medium',
     },
-    infoDivider: {
-        width: 1,
-        height: 12,
+    contactDot: {
+        width: 4,
+        height: 4,
+        borderRadius: 2,
         backgroundColor: 'rgba(0, 0, 0, 0.1)',
-        marginHorizontal: 12,
+        marginHorizontal: 8,
     },
-    statsRow: {
+    statsContainer: {
         flexDirection: 'row',
-        alignItems: 'center',
-        width: '100%',
-        backgroundColor: 'rgba(255, 255, 255, 0.6)',
-        borderRadius: theme.borderRadius.md,
+        marginHorizontal: theme.spacing.lg,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 20,
         padding: theme.spacing.md,
+        ...theme.shadows.light,
+        justifyContent: 'space-between',
+        marginBottom: theme.spacing.xl,
     },
-    statItem: {
+    statCard: {
         flex: 1,
         alignItems: 'center',
     },
+    statDivider: {
+        width: 1,
+        height: '80%',
+        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+        alignSelf: 'center',
+    },
     statValue: {
-        ...theme.typography.h3,
-        fontWeight: '700',
+        fontSize: 20,
+        fontFamily: 'PlusJakartaSans_700Bold',
         color: text,
         marginBottom: 2,
     },
     statLabel: {
-        ...theme.typography.caption,
+        fontSize: 12,
         color: textSecondary,
-        fontSize: 11,
-    },
-    statDivider: {
-        width: 1,
-        height: 24,
-        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+        fontFamily: 'PlusJakartaSans_500Medium',
     },
     section: {
-        marginBottom: theme.spacing.lg,
+        marginBottom: theme.spacing.xl,
+        paddingHorizontal: theme.spacing.lg,
     },
     sectionTitle: {
-        ...theme.typography.h3,
-        fontSize: 16,
-        color: text,
-        marginBottom: theme.spacing.sm,
-        fontWeight: '600',
+        fontSize: 14,
+        fontFamily: 'PlusJakartaSans_700Bold',
+        color: textSecondary,
+        marginBottom: theme.spacing.md,
         marginLeft: 4,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
-    menuCard: {
-        borderRadius: theme.borderRadius.card,
-        overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.3)',
-    },
-    menuBlur: {
-        padding: theme.spacing.xs,
+    menuContainer: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 20,
+        padding: theme.spacing.sm,
+        ...theme.shadows.light,
     },
     menuItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: theme.spacing.sm,
+        justifyContent: 'space-between',
+        padding: theme.spacing.md,
     },
-    menuIconContainer: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        justifyContent: 'center',
+    menuItemLeft: {
+        flexDirection: 'row',
         alignItems: 'center',
-        marginRight: theme.spacing.md,
-    },
-    menuTextContainer: {
+        gap: theme.spacing.md,
         flex: 1,
     },
-    menuTitle: {
-        ...theme.typography.bodyMedium,
-        fontSize: 14,
-        color: text,
-        fontWeight: '500',
+    menuIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    menuSubtitle: {
-        ...theme.typography.caption,
+    menuText: {
+        fontSize: 15,
+        fontFamily: 'PlusJakartaSans_600SemiBold',
+        color: text,
+    },
+    menuSubText: {
         fontSize: 12,
         color: textSecondary,
+        fontFamily: 'PlusJakartaSans_400Regular',
         marginTop: 2,
     },
     menuDivider: {
         height: 1,
         backgroundColor: 'rgba(226, 232, 240, 0.5)',
-        marginLeft: 56,
-        marginRight: theme.spacing.sm,
+        marginHorizontal: theme.spacing.md,
     },
     logoutButton: {
-        marginTop: theme.spacing.base,
-        borderRadius: theme.borderRadius.button,
-        overflow: 'hidden',
-    },
-    logoutGradient: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
+        marginHorizontal: theme.spacing.lg,
         padding: theme.spacing.md,
-        gap: theme.spacing.sm,
+        backgroundColor: '#FEF2F2',
+        borderRadius: 16,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 8,
         borderWidth: 1,
-        borderColor: 'rgba(239, 68, 68, 0.2)',
-        borderRadius: theme.borderRadius.button,
+        borderColor: '#FECACA',
+        marginBottom: theme.spacing.lg,
     },
     logoutText: {
-        ...theme.typography.bodyMedium,
+        fontSize: 15,
+        fontFamily: 'PlusJakartaSans_600SemiBold',
         color: '#EF4444',
-        fontWeight: '600',
     },
     versionText: {
-        ...theme.typography.caption,
-        color: textSecondary,
         textAlign: 'center',
-        marginTop: theme.spacing.xl,
+        fontSize: 12,
+        color: textSecondary,
+        fontFamily: 'PlusJakartaSans_400Regular',
+        marginBottom: theme.spacing.xl,
         opacity: 0.6,
     },
 });

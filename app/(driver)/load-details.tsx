@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import {
     Animated,
@@ -14,6 +14,7 @@ import {
     View,
 } from 'react-native';
 import { Button } from '../../components/shared/Button';
+import { StatusPill } from '../../components/shared/StatusPill';
 import {
     primary,
     surface,
@@ -26,6 +27,7 @@ const { width } = Dimensions.get('window');
 
 export default function LoadDetails() {
     const router = useRouter();
+    const params = useLocalSearchParams();
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(50)).current;
 
@@ -68,7 +70,9 @@ export default function LoadDetails() {
                         <Ionicons name="arrow-back" size={24} color={text} />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Load Details</Text>
-                    <View style={styles.placeholder} />
+                    <TouchableOpacity style={styles.shareButton}>
+                        <Ionicons name="share-outline" size={24} color={text} />
+                    </TouchableOpacity>
                 </View>
 
                 <ScrollView
@@ -82,6 +86,12 @@ export default function LoadDetails() {
                             transform: [{ translateY: slideAnim }],
                         }}
                     >
+                        {/* Header Info */}
+                        <View style={styles.idContainer}>
+                            <Text style={styles.loadId}>Load #{params.id || '10234'}</Text>
+                            <StatusPill status="pending" />
+                        </View>
+
                         {/* Expected Earnings */}
                         <LinearGradient
                             colors={theme.gradients.primary as any}
@@ -178,15 +188,15 @@ export default function LoadDetails() {
                             </BlurView>
                         </LinearGradient>
                     </Animated.View>
-                </ScrollView>
 
-                <BlurView intensity={20} tint="light" style={styles.footer}>
-                    <Button
-                        title="Accept Load"
-                        onPress={handleAccept}
-                        fullWidth
-                    />
-                </BlurView>
+                    <BlurView intensity={20} tint="light" style={styles.footer}>
+                        <Button
+                            title="Accept Load"
+                            onPress={handleAccept}
+                            fullWidth
+                        />
+                    </BlurView>
+                </ScrollView>
             </SafeAreaView>
         </View>
     );
@@ -195,6 +205,7 @@ export default function LoadDetails() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        paddingBottom: theme.spacing.xxxl,
     },
     safeArea: {
         flex: 1,
@@ -203,31 +214,49 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: theme.spacing.base,
+        paddingHorizontal: theme.spacing.lg,
         paddingVertical: theme.spacing.md,
     },
     backButton: {
-        width: 40,
-        height: 40,
+        width: 44,
+        height: 44,
         justifyContent: 'center',
         alignItems: 'center',
-        borderRadius: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+        borderRadius: 14,
+        backgroundColor: '#FFFFFF',
+        ...theme.shadows.light,
+    },
+    shareButton: {
+        width: 44,
+        height: 44,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 14,
+        backgroundColor: '#FFFFFF',
+        ...theme.shadows.light,
     },
     headerTitle: {
-        ...theme.typography.h2,
         fontSize: 20,
         color: text,
         fontWeight: '700',
+        fontFamily: 'PlusJakartaSans_700Bold',
     },
-    placeholder: {
-        width: 40,
+    idContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: theme.spacing.md,
+    },
+    loadId: {
+        fontSize: 14,
+        color: textSecondary,
+        fontFamily: 'PlusJakartaSans_600SemiBold',
     },
     scrollView: {
         flex: 1,
     },
     content: {
-        paddingHorizontal: theme.spacing.base,
+        paddingHorizontal: theme.spacing.lg,
         paddingTop: theme.spacing.base,
         paddingBottom: theme.spacing.xl,
     },
@@ -239,16 +268,17 @@ const styles = StyleSheet.create({
         ...theme.shadows.glow,
     },
     earningsLabel: {
-        ...theme.typography.body,
+        fontSize: 14,
         color: 'rgba(255, 255, 255, 0.9)',
         marginBottom: theme.spacing.xs,
+        fontFamily: 'PlusJakartaSans_500Medium',
     },
     earningsAmount: {
-        ...theme.typography.h1,
         fontSize: 36,
         color: surface,
         fontWeight: '700',
         marginBottom: theme.spacing.md,
+        fontFamily: 'PlusJakartaSans_800ExtraBold',
     },
     paymentTag: {
         flexDirection: 'row',
@@ -260,10 +290,10 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     paymentTagText: {
-        ...theme.typography.caption,
         color: primary,
         fontWeight: '600',
         fontSize: 12,
+        fontFamily: 'PlusJakartaSans_600SemiBold',
     },
     detailsCard: {
         borderRadius: theme.borderRadius.card,
@@ -277,11 +307,11 @@ const styles = StyleSheet.create({
         padding: theme.spacing.lg,
     },
     sectionTitle: {
-        ...theme.typography.h3,
         fontSize: 18,
         color: text,
         marginBottom: theme.spacing.lg,
         fontWeight: '600',
+        fontFamily: 'PlusJakartaSans_700Bold',
     },
     routeContainer: {
         marginBottom: theme.spacing.lg,
@@ -332,24 +362,24 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(226, 232, 240, 0.8)',
     },
     locationLabel: {
-        ...theme.typography.caption,
         fontSize: 12,
         color: textSecondary,
         marginBottom: 2,
         textTransform: 'uppercase',
         letterSpacing: 0.5,
+        fontFamily: 'PlusJakartaSans_700Bold',
     },
     locationText: {
-        ...theme.typography.bodyMedium,
         fontSize: 16,
         color: text,
         fontWeight: '600',
         marginBottom: 2,
+        fontFamily: 'PlusJakartaSans_600SemiBold',
     },
     timeText: {
-        ...theme.typography.caption,
         color: textSecondary,
         fontSize: 13,
+        fontFamily: 'PlusJakartaSans_500Medium',
     },
     divider: {
         height: 1,
@@ -374,16 +404,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     infoLabel: {
-        ...theme.typography.caption,
         fontSize: 12,
         color: textSecondary,
         marginBottom: 2,
+        fontFamily: 'PlusJakartaSans_500Medium',
     },
     infoValue: {
-        ...theme.typography.bodyMedium,
         fontSize: 15,
         color: text,
         fontWeight: '600',
+        fontFamily: 'PlusJakartaSans_700Bold',
     },
     detailRow: {
         flexDirection: 'row',
@@ -396,19 +426,19 @@ const styles = StyleSheet.create({
         borderBottomWidth: 0,
     },
     detailLabel: {
-        ...theme.typography.body,
         color: textSecondary,
         fontSize: 15,
+        fontFamily: 'PlusJakartaSans_500Medium',
     },
     detailValue: {
-        ...theme.typography.bodyMedium,
         color: text,
         fontWeight: '600',
         fontSize: 15,
+        fontFamily: 'PlusJakartaSans_600SemiBold',
     },
     footer: {
-        paddingHorizontal: theme.spacing.base,
-        paddingVertical: theme.spacing.lg,
+        paddingHorizontal: theme.spacing.xs,
+        paddingVertical: theme.spacing.md,
         borderTopWidth: 1,
         borderTopColor: 'rgba(255, 255, 255, 0.3)',
     },

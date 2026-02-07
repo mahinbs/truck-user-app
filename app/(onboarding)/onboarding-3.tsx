@@ -110,8 +110,7 @@ export default function Onboarding3() {
                             title="Start Now"
                             onPress={() => router.push('/(auth)/login')}
                             variant="primary"
-                            style={[styles.button, styles.nextButton]}
-                            textStyle={styles.nextButtonText}
+                            style={styles.button}
                         />
                     </View>
                 </Animated.View>
@@ -225,6 +224,7 @@ const styles = StyleSheet.create({
         flex: 1,
         height: 56,
         borderRadius: 28,
+        backgroundColor: '#4319ff87'
     },
     backButton: {
         borderColor: 'rgba(255, 255, 255, 0.3)',
@@ -236,12 +236,5 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
     },
-    nextButton: {
-        backgroundColor: '#F59E0B', // Yellow for CTA
-    },
-    nextButtonText: {
-        color: '#FFF',
-        fontSize: 16,
-        fontWeight: '700',
-    }
+
 });

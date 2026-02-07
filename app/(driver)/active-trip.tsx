@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
     Animated,
     Dimensions,
@@ -17,7 +17,6 @@ import {
 import { Button } from '../../components/shared/Button';
 import {
     primary,
-    surface,
     text,
     textSecondary
 } from '../../constants/Colors';
@@ -62,7 +61,6 @@ const tripTimeline = [
 
 export default function ActiveTrip() {
     const router = useRouter();
-    const [tripStatus, setTripStatus] = useState('in-transit');
     const slideAnim = useRef(new Animated.Value(height)).current;
 
     useEffect(() => {
@@ -93,20 +91,19 @@ export default function ActiveTrip() {
                             isCompleted && styles.timelineDotCompleted,
                             isCurrent && styles.timelineDotCurrent,
                         ]}>
-                            {isCompleted && <Ionicons name="checkmark" size={12} color={surface} />}
+                            {isCompleted && <Ionicons name="checkmark" size={10} color="#FFFFFF" />}
                             {isCurrent && <View style={styles.currentDotInner} />}
                         </View>
                     </View>
-                    <Text style={styles.timelineTime}>{item.time}</Text>
                 </View>
-                <View style={[
-                    styles.timelineContent,
-                    isCurrent && styles.timelineContentCurrent
-                ]}>
-                    <Text style={[
-                        styles.timelineTitle,
-                        isCurrent && styles.textPrimary
-                    ]}>{item.title}</Text>
+                <View style={styles.timelineContent}>
+                    <View style={styles.timelineHeader}>
+                        <Text style={[
+                            styles.timelineTitle,
+                            isCurrent && styles.textPrimary
+                        ]}>{item.title}</Text>
+                        <Text style={styles.timelineTime}>{item.time}</Text>
+                    </View>
                     <Text style={styles.timelineLocation}>{item.location}</Text>
                 </View>
             </View>
@@ -116,30 +113,40 @@ export default function ActiveTrip() {
     return (
         <View style={styles.container}>
             {/* Map Placeholder Background */}
-            <Image
-                source={{ uri: 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/72.8777,19.0760,11,0/600x800?access_token=YOUR_TOKEN' }}
-                style={StyleSheet.absoluteFillObject}
-                resizeMode="cover"
-            />
-            <LinearGradient
-                colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.1)', 'transparent']}
-                style={styles.mapOverlay}
-            />
+            <View style={styles.mapContainer}>
+                <Image
+                    source={{ uri: 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/72.8777,19.0760,11,0/600x800?access_token=placeholder' }}
+                    style={StyleSheet.absoluteFillObject}
+                    resizeMode="cover"
+                />
+                <LinearGradient
+                    colors={['rgba(0,0,0,0.6)', 'transparent', 'transparent']}
+                    style={styles.mapOverlay}
+                />
+                {/* Map Fallback Content since URL requires token */}
+                <View style={[StyleSheet.absoluteFillObject, styles.mapFallback]}>
+                    <Ionicons name="map" size={64} color={textSecondary} style={{ opacity: 0.2 }} />
+                </View>
+            </View>
 
             <SafeAreaView style={styles.safeArea}>
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                         <Ionicons name="arrow-back" size={24} color={text} />
                     </TouchableOpacity>
+
                     <View style={styles.headerTitleContainer}>
-                        <Text style={styles.headerTitle}>Active Trip</Text>
-                        <View style={styles.statusPill}>
-                            <View style={styles.statusDot} />
-                            <Text style={styles.statusText}>On Time</Text>
-                        </View>
+                        <BlurView intensity={80} tint="light" style={styles.headerTitleBlur}>
+                            <Text style={styles.headerTitle}>Active Trip</Text>
+                            <View style={styles.statusPill}>
+                                <View style={styles.statusDot} />
+                                <Text style={styles.statusText}>On Time</Text>
+                            </View>
+                        </BlurView>
                     </View>
+
                     <TouchableOpacity style={styles.sosButton}>
-                        <Ionicons name="warning" size={20} color={surface} />
+                        <Ionicons name="warning" size={20} color="#FFFFFF" />
                         <Text style={styles.sosText}>SOS</Text>
                     </TouchableOpacity>
                 </View>
@@ -151,76 +158,74 @@ export default function ActiveTrip() {
                         { transform: [{ translateY: slideAnim }] }
                     ]}
                 >
-                    <BlurView intensity={80} tint="light" style={styles.bottomSheetBlur}>
-                        <View style={styles.handleIndicator} />
+                    <View style={styles.handleIndicator} />
 
-                        <ScrollView
-                            showsVerticalScrollIndicator={false}
-                            contentContainerStyle={styles.sheetContent}
-                        >
-                            <View style={styles.tripHeader}>
-                                <View>
-                                    <Text style={styles.tripRoute}>Mumbai → Delhi</Text>
-                                    <Text style={styles.tripId}>Trip #TRK-8924</Text>
-                                </View>
-                                <View style={styles.navigationButton}>
-                                    <LinearGradient
-                                        colors={theme.gradients.primary as any}
-                                        style={styles.navGradient}
-                                    >
-                                        <Ionicons name="navigate" size={20} color={surface} />
-                                    </LinearGradient>
-                                </View>
+                    <ScrollView
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={styles.sheetContent}
+                    >
+                        <View style={styles.tripHeader}>
+                            <View>
+                                <Text style={styles.tripRoute}>Mumbai → Delhi</Text>
+                                <Text style={styles.tripId}>Trip #TRK-8924</Text>
                             </View>
-
-                            <View style={styles.progressCard}>
+                            <TouchableOpacity style={styles.navigationButton}>
                                 <LinearGradient
-                                    colors={['rgba(59, 130, 246, 0.1)', 'rgba(96, 165, 250, 0.05)']}
-                                    style={styles.progressGradient}
+                                    colors={theme.gradients.primary as any}
+                                    style={styles.navGradient}
                                 >
-                                    <View style={styles.progressStats}>
-                                        <View style={styles.statItem}>
-                                            <Text style={styles.statLabel}>Distance Left</Text>
-                                            <Text style={styles.statValue}>850 km</Text>
-                                        </View>
-                                        <View style={styles.statDivider} />
-                                        <View style={styles.statItem}>
-                                            <Text style={styles.statLabel}>Est. Arrival</Text>
-                                            <Text style={styles.statValue}>28 hrs</Text>
-                                        </View>
-                                    </View>
-                                    <View style={styles.progressBarBg}>
-                                        <LinearGradient
-                                            colors={theme.gradients.primary as any}
-                                            start={{ x: 0, y: 0 }}
-                                            end={{ x: 1, y: 0 }}
-                                            style={[styles.progressBarFill, { width: '45%' }]}
-                                        />
-                                    </View>
+                                    <Ionicons name="navigate" size={24} color="#FFFFFF" />
                                 </LinearGradient>
-                            </View>
+                            </TouchableOpacity>
+                        </View>
 
-                            <Text style={styles.sectionTitle}>Trip Timeline</Text>
-                            <View style={styles.timelineContainer}>
-                                {tripTimeline.map(renderTimelineItem)}
+                        <LinearGradient
+                            colors={['rgba(59, 130, 246, 0.08)', 'rgba(96, 165, 250, 0.04)']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.progressCard}
+                        >
+                            <View style={styles.progressStats}>
+                                <View style={styles.statItem}>
+                                    <Text style={styles.statLabel}>Distance Left</Text>
+                                    <Text style={styles.statValue}>850 km</Text>
+                                </View>
+                                <View style={styles.statDivider} />
+                                <View style={styles.statItem}>
+                                    <Text style={styles.statLabel}>Est. Arrival</Text>
+                                    <Text style={styles.statValue}>28 hrs</Text>
+                                </View>
                             </View>
+                            <View style={styles.progressBarBg}>
+                                <LinearGradient
+                                    colors={theme.gradients.primary as any}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 0 }}
+                                    style={[styles.progressBarFill, { width: '45%' }]}
+                                />
+                            </View>
+                        </LinearGradient>
 
-                            <View style={styles.actionsContainer}>
-                                <Button
-                                    title="Update Status"
-                                    onPress={() => { }}
-                                    variant="outline"
-                                    style={styles.actionButton}
-                                />
-                                <Button
-                                    title="Contact Support"
-                                    onPress={() => { }}
-                                    variant="secondary"
-                                    style={styles.actionButton}
-                                />
-                            </View>
-                        </ScrollView>
-                    </BlurView>
+                        <Text style={styles.sectionTitle}>Trip Timeline</Text>
+                        <View style={styles.timelineContainer}>
+                            {tripTimeline.map(renderTimelineItem)}
+                        </View>
+
+                        <View style={styles.actionsContainer}>
+                            <Button
+                                title="Update Status"
+                                onPress={() => { }}
+                                variant="outline"
+                                style={styles.actionButton}
+                            />
+                            <Button
+                                title="Contact Support"
+                                onPress={() => { }}
+                                variant="secondary"
+                                style={styles.actionButton}
+                            />
+                        </View>
+                    </ScrollView>
                 </Animated.View>
             </SafeAreaView>
         </View>
@@ -230,24 +235,30 @@ export default function ActiveTrip() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f1f5f9', // Map placeholder color
+        backgroundColor: '#F8FAFC',
+    },
+    mapContainer: {
+        ...StyleSheet.absoluteFillObject,
+        height: height * 0.5,
     },
     mapOverlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 200,
+        ...StyleSheet.absoluteFillObject,
+    },
+    mapFallback: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#E2E8F0',
+        zIndex: -1,
     },
     safeArea: {
         flex: 1,
     },
     header: {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         justifyContent: 'space-between',
-        paddingHorizontal: theme.spacing.base,
-        paddingTop: theme.spacing.base,
+        paddingHorizontal: theme.spacing.lg,
+        paddingTop: theme.spacing.md,
     },
     backButton: {
         width: 40,
@@ -255,27 +266,30 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 20,
-        backgroundColor: surface,
+        backgroundColor: '#FFFFFF',
         ...theme.shadows.medium,
     },
     headerTitleContainer: {
-        alignItems: 'center',
-        backgroundColor: surface,
+        borderRadius: 20,
+        overflow: 'hidden',
+        ...theme.shadows.medium,
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    },
+    headerTitleBlur: {
         paddingVertical: 8,
         paddingHorizontal: 16,
-        borderRadius: 20,
-        ...theme.shadows.medium,
+        alignItems: 'center',
     },
     headerTitle: {
-        ...theme.typography.bodyMedium,
-        fontWeight: '700',
+        fontSize: 16,
+        fontFamily: 'PlusJakartaSans_700Bold',
         color: text,
         marginBottom: 2,
     },
     statusPill: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 4,
+        gap: 6,
     },
     statusDot: {
         width: 6,
@@ -284,9 +298,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#10B981',
     },
     statusText: {
-        ...theme.typography.caption,
+        fontSize: 12,
         color: '#10B981',
-        fontWeight: '600',
+        fontFamily: 'PlusJakartaSans_600SemiBold',
     },
     sosButton: {
         flexDirection: 'row',
@@ -295,28 +309,25 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         paddingHorizontal: 12,
         borderRadius: 20,
-        gap: 4,
+        gap: 6,
         ...theme.shadows.medium,
     },
     sosText: {
-        ...theme.typography.caption,
-        color: surface,
-        fontWeight: '700',
+        fontSize: 14,
+        color: '#FFFFFF',
+        fontFamily: 'PlusJakartaSans_700Bold',
     },
     bottomSheet: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        height: height * 0.65,
-        backgroundColor: surface,
+        height: height * 0.7,
+        backgroundColor: '#FFFFFF',
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,
-        overflow: 'hidden',
         ...theme.shadows.strong,
-    },
-    bottomSheetBlur: {
-        flex: 1,
+        elevation: 20,
     },
     handleIndicator: {
         width: 40,
@@ -338,35 +349,34 @@ const styles = StyleSheet.create({
         marginBottom: theme.spacing.lg,
     },
     tripRoute: {
-        ...theme.typography.h2,
         fontSize: 24,
+        fontFamily: 'PlusJakartaSans_700Bold',
         color: text,
         marginBottom: 4,
     },
     tripId: {
-        ...theme.typography.body,
+        fontSize: 14,
+        fontFamily: 'PlusJakartaSans_500Medium',
         color: textSecondary,
     },
     navigationButton: {
-        borderRadius: 25,
+        borderRadius: 28,
         overflow: 'hidden',
         ...theme.shadows.glow,
+        elevation: 10,
     },
     navGradient: {
-        width: 50,
-        height: 50,
+        width: 56,
+        height: 56,
         justifyContent: 'center',
         alignItems: 'center',
     },
     progressCard: {
-        borderRadius: theme.borderRadius.card,
-        overflow: 'hidden',
+        borderRadius: 20,
+        padding: theme.spacing.lg,
         marginBottom: theme.spacing.xl,
         borderWidth: 1,
-        borderColor: 'rgba(59, 130, 246, 0.1)',
-    },
-    progressGradient: {
-        padding: theme.spacing.lg,
+        borderColor: 'rgba(59, 130, 246, 0.15)',
     },
     progressStats: {
         flexDirection: 'row',
@@ -376,15 +386,15 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     statLabel: {
-        ...theme.typography.caption,
+        fontSize: 12,
         color: textSecondary,
         marginBottom: 4,
+        fontFamily: 'PlusJakartaSans_500Medium',
     },
     statValue: {
-        ...theme.typography.h3,
         fontSize: 18,
         color: text,
-        fontWeight: '700',
+        fontFamily: 'PlusJakartaSans_700Bold',
     },
     statDivider: {
         width: 1,
@@ -393,122 +403,112 @@ const styles = StyleSheet.create({
         marginHorizontal: theme.spacing.lg,
     },
     progressBarBg: {
-        height: 6,
+        height: 8,
         backgroundColor: 'rgba(0, 0, 0, 0.05)',
-        borderRadius: 3,
+        borderRadius: 4,
         overflow: 'hidden',
     },
     progressBarFill: {
         height: '100%',
-        borderRadius: 3,
+        borderRadius: 4,
     },
     sectionTitle: {
-        ...theme.typography.h3,
         fontSize: 18,
         color: text,
         marginBottom: theme.spacing.lg,
-        fontWeight: '600',
+        fontFamily: 'PlusJakartaSans_600SemiBold',
     },
     timelineContainer: {
         marginBottom: theme.spacing.xl,
     },
     timelineItem: {
         flexDirection: 'row',
-        minHeight: 80,
+        paddingBottom: theme.spacing.lg,
     },
     timelineLeft: {
-        width: 80,
-        alignItems: 'flex-end',
-        paddingRight: theme.spacing.md,
+        width: 30,
+        alignItems: 'center',
+        marginRight: theme.spacing.md,
     },
     timelineLineContainer: {
-        position: 'absolute',
-        right: -7,
-        top: 4,
-        bottom: 0,
         alignItems: 'center',
-        width: 14,
+        height: '100%',
     },
     timelineLine: {
         position: 'absolute',
-        top: 14,
-        bottom: 0,
+        top: 0,
+        bottom: -20,
         width: 2,
         backgroundColor: '#E2E8F0',
+        zIndex: -1,
     },
     timelineLineActive: {
-        backgroundColor: primary,
+        backgroundColor: '#10B981',
     },
     timelineDot: {
-        width: 14,
-        height: 14,
-        borderRadius: 7,
+        width: 18,
+        height: 18,
+        borderRadius: 9,
         backgroundColor: '#E2E8F0',
         borderWidth: 2,
-        borderColor: surface,
+        borderColor: '#FFFFFF',
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 1,
+        marginBottom: 4,
     },
     timelineDotCompleted: {
-        backgroundColor: primary,
-        width: 16,
-        height: 16,
-        borderRadius: 8,
+        backgroundColor: '#10B981',
+        borderColor: '#DCFCE7',
         borderWidth: 0,
     },
     timelineDotCurrent: {
-        backgroundColor: surface,
+        backgroundColor: '#FFFFFF',
         borderColor: primary,
-        width: 16,
-        height: 16,
-        borderRadius: 8,
+        borderWidth: 2,
+        width: 20,
+        height: 20,
+        borderRadius: 10,
     },
     currentDotInner: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
+        width: 10,
+        height: 10,
+        borderRadius: 5,
         backgroundColor: primary,
-    },
-    timelineTime: {
-        ...theme.typography.caption,
-        color: textSecondary,
-        textAlign: 'right',
-        fontSize: 12,
     },
     timelineContent: {
         flex: 1,
-        paddingLeft: theme.spacing.md,
-        paddingBottom: theme.spacing.lg,
+        paddingTop: 2,
     },
-    timelineContentCurrent: {
-        backgroundColor: 'rgba(59, 130, 246, 0.05)',
-        marginRight: -theme.spacing.lg,
-        paddingRight: theme.spacing.lg,
-        paddingTop: theme.spacing.sm,
-        marginTop: -theme.spacing.sm,
-        borderTopLeftRadius: theme.borderRadius.base,
-        borderBottomLeftRadius: theme.borderRadius.base,
+    timelineHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 2,
     },
     timelineTitle: {
-        ...theme.typography.bodyMedium,
+        fontSize: 15,
+        fontFamily: 'PlusJakartaSans_600SemiBold',
         color: text,
-        fontWeight: '600',
-        marginBottom: 2,
     },
     textPrimary: {
         color: primary,
+        fontFamily: 'PlusJakartaSans_700Bold',
+    },
+    timelineTime: {
+        fontSize: 12,
+        color: textSecondary,
+        fontFamily: 'PlusJakartaSans_500Medium',
     },
     timelineLocation: {
-        ...theme.typography.caption,
-        color: textSecondary,
         fontSize: 13,
-        lineHeight: 18,
+        color: textSecondary,
+        fontFamily: 'PlusJakartaSans_400Regular',
     },
     actionsContainer: {
         gap: theme.spacing.md,
     },
     actionButton: {
-        borderRadius: theme.borderRadius.button,
+        borderRadius: 12,
     },
 });
