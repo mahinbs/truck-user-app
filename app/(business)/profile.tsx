@@ -10,18 +10,14 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
-import {
-    primary,
-    text,
-    textSecondary
-} from '../../constants/Colors';
+import { Colors } from '../../constants/Colors';
 import { theme } from '../../constants/theme';
 
 const { width } = Dimensions.get('window');
 
-export default function DriverProfile() {
+export default function Profile() {
     const router = useRouter();
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(20)).current;
@@ -41,27 +37,20 @@ export default function DriverProfile() {
         ]).start();
     }, []);
 
-    const MenuItem = ({ icon, label, subLabel, color = primary, showDivider = true, onPress }: any) => (
+    const MenuItem = ({ icon, label, color = Colors.light.primary, showDivider = true, onPress }: any) => (
         <>
             <TouchableOpacity style={styles.menuItem} onPress={onPress}>
                 <View style={styles.menuItemLeft}>
                     <View style={[styles.menuIcon, { backgroundColor: `${color}15` }]}>
                         <Ionicons name={icon} size={20} color={color} />
                     </View>
-                    <View>
-                        <Text style={styles.menuText}>{label}</Text>
-                        {subLabel && <Text style={styles.menuSubText}>{subLabel}</Text>}
-                    </View>
+                    <Text style={styles.menuText}>{label}</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color={textSecondary} />
+                <Ionicons name="chevron-forward" size={18} color={Colors.light.textSecondary} />
             </TouchableOpacity>
             {showDivider && <View style={styles.menuDivider} />}
         </>
     );
-
-    const handleLogout = () => {
-        router.replace('/');
-    };
 
     return (
         <View style={styles.container}>
@@ -77,11 +66,11 @@ export default function DriverProfile() {
                         onPress={() => router.back()}
                         style={styles.iconButton}
                     >
-                        <Ionicons name="arrow-back" size={24} color={text} />
+                        <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Profile</Text>
                     <TouchableOpacity style={styles.iconButton}>
-                        <Ionicons name="create-outline" size={24} color={primary} />
+                        <Ionicons name="create-outline" size={24} color={Colors.light.primary} />
                     </TouchableOpacity>
                 </View>
 
@@ -96,7 +85,7 @@ export default function DriverProfile() {
                             transform: [{ translateY: slideAnim }],
                         }}
                     >
-                        {/* Profile Info */}
+                        {/* Profile Info - Light & Clean */}
                         <View style={styles.profileSection}>
                             <View style={styles.avatarContainer}>
                                 <LinearGradient
@@ -104,7 +93,7 @@ export default function DriverProfile() {
                                     style={styles.avatarGradient}
                                 >
                                     <View style={styles.avatarInner}>
-                                        <Text style={styles.avatarText}>RK</Text>
+                                        <Text style={styles.avatarText}>JD</Text>
                                     </View>
                                 </LinearGradient>
                                 <View style={styles.verifiedBadge}>
@@ -112,78 +101,55 @@ export default function DriverProfile() {
                                 </View>
                             </View>
 
-                            <Text style={styles.userName}>Rajesh Kumar</Text>
-                            <Text style={styles.userRole}>Professional Driver</Text>
+                            <Text style={styles.userName}>John Doe</Text>
+                            <Text style={styles.userRole}>Business Account</Text>
 
                             <View style={styles.contactInfo}>
-                                <Text style={styles.contactText}>rajesh.k@example.com</Text>
+                                <Text style={styles.contactText}>john.doe@example.com</Text>
                                 <View style={styles.contactDot} />
                                 <Text style={styles.contactText}>+91 98765 43210</Text>
                             </View>
                         </View>
 
-                        {/* Stats */}
+                        {/* Stats - Horizontal Scroll or Grid */}
                         <View style={styles.statsContainer}>
                             <View style={styles.statCard}>
-                                <Text style={styles.statValue}>245</Text>
-                                <Text style={styles.statLabel}>Trips</Text>
+                                <Text style={styles.statValue}>48</Text>
+                                <Text style={styles.statLabel}>Total</Text>
                             </View>
                             <View style={styles.statDivider} />
                             <View style={styles.statCard}>
-                                <Text style={[styles.statValue, { color: '#F59E0B' }]}>4.8</Text>
-                                <Text style={styles.statLabel}>Rating</Text>
+                                <Text style={[styles.statValue, { color: '#10B981' }]}>42</Text>
+                                <Text style={styles.statLabel}>Completed</Text>
                             </View>
                             <View style={styles.statDivider} />
                             <View style={styles.statCard}>
-                                <Text style={[styles.statValue, { color: primary }]}>2.5y</Text>
-                                <Text style={styles.statLabel}>Exp</Text>
+                                <Text style={[styles.statValue, { color: '#F59E0B' }]}>6</Text>
+                                <Text style={styles.statLabel}>Active</Text>
                             </View>
                         </View>
 
-                        {/* Truck Information */}
+                        {/* Menu Sections */}
                         <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Truck Information</Text>
+                            <Text style={styles.sectionTitle}>Account Settings</Text>
                             <View style={styles.menuContainer}>
-                                <MenuItem
-                                    icon="car-outline"
-                                    label="Truck Details"
-                                    subLabel="Tata Prima 5530.S"
-                                />
-                                <MenuItem
-                                    icon="document-text-outline"
-                                    label="Documents"
-                                    subLabel="RC, Insurance, Permit"
-                                    color="#F59E0B"
-                                    showDivider={false}
-                                />
+                                <MenuItem icon="person-outline" label="Edit Profile" />
+                                <MenuItem icon="shield-checkmark-outline" label="Security & Privacy" />
+                                <MenuItem icon="notifications-outline" label="Notifications" />
+                                <MenuItem icon="wallet-outline" label="Payment Methods" color="#10B981" showDivider={false} />
                             </View>
                         </View>
 
-                        {/* Banking */}
                         <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Banking</Text>
+                            <Text style={styles.sectionTitle}>Support & Legal</Text>
                             <View style={styles.menuContainer}>
-                                <MenuItem
-                                    icon="card-outline"
-                                    label="Bank Account"
-                                    subLabel="HDFC Bank •••• 4589"
-                                    color="#10B981"
-                                    showDivider={false}
-                                />
-                            </View>
-                        </View>
-
-                        {/* Support */}
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Support & Settings</Text>
-                            <View style={styles.menuContainer}>
-                                <MenuItem icon="help-circle-outline" label="Help & Support" color="#F59E0B" />
-                                <MenuItem icon="settings-outline" label="Settings" showDivider={false} />
+                                <MenuItem icon="help-circle-outline" label="Help Center" color="#F59E0B" />
+                                <MenuItem icon="document-text-outline" label="Terms & Conditions" showDivider={false} />
                             </View>
                         </View>
 
                         {/* Logout */}
-                        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                        <TouchableOpacity style={styles.logoutButton}>
                             <Ionicons name="log-out-outline" size={20} color="#EF4444" />
                             <Text style={styles.logoutText}>Log Out</Text>
                         </TouchableOpacity>
@@ -214,7 +180,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 18,
         fontFamily: 'PlusJakartaSans_700Bold',
-        color: text,
+        color: Colors.light.text,
     },
     iconButton: {
         width: 40,
@@ -256,7 +222,7 @@ const styles = StyleSheet.create({
     avatarText: {
         fontSize: 32,
         fontFamily: 'PlusJakartaSans_800ExtraBold',
-        color: primary,
+        color: Colors.light.primary,
     },
     verifiedBadge: {
         position: 'absolute',
@@ -269,13 +235,13 @@ const styles = StyleSheet.create({
     userName: {
         fontSize: 24,
         fontFamily: 'PlusJakartaSans_700Bold',
-        color: text,
+        color: Colors.light.text,
         marginBottom: 4,
     },
     userRole: {
         fontSize: 14,
         fontFamily: 'PlusJakartaSans_500Medium',
-        color: textSecondary,
+        color: Colors.light.textSecondary,
         marginBottom: theme.spacing.md,
     },
     contactInfo: {
@@ -289,14 +255,14 @@ const styles = StyleSheet.create({
     },
     contactText: {
         fontSize: 12,
-        color: textSecondary,
+        color: Colors.light.textSecondary,
         fontFamily: 'PlusJakartaSans_500Medium',
     },
     contactDot: {
         width: 4,
         height: 4,
         borderRadius: 2,
-        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+        backgroundColor: Colors.light.border,
         marginHorizontal: 8,
     },
     statsContainer: {
@@ -316,18 +282,18 @@ const styles = StyleSheet.create({
     statDivider: {
         width: 1,
         height: '80%',
-        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+        backgroundColor: Colors.light.border,
         alignSelf: 'center',
     },
     statValue: {
         fontSize: 20,
         fontFamily: 'PlusJakartaSans_700Bold',
-        color: text,
+        color: Colors.light.text,
         marginBottom: 2,
     },
     statLabel: {
         fontSize: 12,
-        color: textSecondary,
+        color: Colors.light.textSecondary,
         fontFamily: 'PlusJakartaSans_500Medium',
     },
     section: {
@@ -337,7 +303,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 14,
         fontFamily: 'PlusJakartaSans_700Bold',
-        color: textSecondary,
+        color: Colors.light.textSecondary,
         marginBottom: theme.spacing.md,
         marginLeft: 4,
         textTransform: 'uppercase',
@@ -359,7 +325,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: theme.spacing.md,
-        flex: 1,
     },
     menuIcon: {
         width: 40,
@@ -371,18 +336,13 @@ const styles = StyleSheet.create({
     menuText: {
         fontSize: 15,
         fontFamily: 'PlusJakartaSans_600SemiBold',
-        color: text,
-    },
-    menuSubText: {
-        fontSize: 12,
-        color: textSecondary,
-        fontFamily: 'PlusJakartaSans_400Regular',
-        marginTop: 2,
+        color: Colors.light.text,
     },
     menuDivider: {
         height: 1,
-        backgroundColor: 'rgba(226, 232, 240, 0.5)',
+        backgroundColor: Colors.light.border,
         marginHorizontal: theme.spacing.md,
+        opacity: 0.5,
     },
     logoutButton: {
         marginHorizontal: theme.spacing.lg,
@@ -405,9 +365,8 @@ const styles = StyleSheet.create({
     versionText: {
         textAlign: 'center',
         fontSize: 12,
-        color: textSecondary,
+        color: Colors.light.textSecondary,
         fontFamily: 'PlusJakartaSans_400Regular',
         marginBottom: theme.spacing.xl,
-        opacity: 0.6,
     },
 });

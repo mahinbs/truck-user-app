@@ -1,430 +1,514 @@
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { StatusChip } from '@/components/ui/StatusChip';
-import { borderRadius, colors, shadows, spacing, typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router, useLocalSearchParams } from 'expo-router';
-import React, { useState } from 'react';
-import { Dimensions, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useRef } from 'react';
+import {
+    Animated,
+    Dimensions,
+    Image,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { Button } from '../../components/shared/Button';
+import {
+    primary,
+    text,
+    textSecondary
+} from '../../constants/Colors';
+import { theme } from '../../constants/theme';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
-type TripStatus = 'GOING_TO_PICKUP' | 'AT_PICKUP' | 'LOADED' | 'IN_TRANSIT' | 'AT_DESTINATION';
+const tripTimeline = [
+    {
+        id: '1',
+        title: 'Pickup',
+        location: 'Mumbai Port Trust, Maharashtra',
+        time: '10:00 AM',
+        status: 'completed',
+        isLast: false,
+    },
+    {
+        id: '2',
+        title: 'Checkpost',
+        location: 'Vashi Check Naka',
+        time: '12:30 PM',
+        status: 'completed',
+        isLast: false,
+    },
+    {
+        id: '3',
+        title: 'Halt',
+        location: 'Food Mall, Pune Expressway',
+        time: '02:00 PM',
+        status: 'current',
+        isLast: false,
+    },
+    {
+        id: '4',
+        title: 'Drop',
+        location: 'Transport Nagar, Delhi',
+        time: 'Est. Dec 17',
+        status: 'pending',
+        isLast: true,
+    },
+];
 
-// Full trip details (can be loaded by id when navigated from home current trip card)
-const TRIP_DETAILS: Record<string, {
-  trackingId: string;
-  from: string;
-  to: string;
-  material: string;
-  weight: string;
-  truckType: string;
-  earnings: number;
-  customerName: string;
-  customerPhone: string;
-  eta: string;
-  remainingKm: string;
-}> = {
-  'current-1': {
-    trackingId: 'TRK2024001',
-    from: 'Mumbai, Maharashtra',
-    to: 'Delhi, Delhi',
-    material: 'Electronics',
-    weight: '1200 kg',
-    truckType: 'Container Truck',
-    earnings: 12500,
-    customerName: 'Alex Morgan',
-    customerPhone: '+919876543210',
-    eta: '4h 30m',
-    remainingKm: '497 km',
-  },
-};
+export default function ActiveTrip() {
+    const router = useRouter();
+    const slideAnim = useRef(new Animated.Value(height)).current;
 
-export default function ActiveTripScreen() {
-  const { id: tripId } = useLocalSearchParams<{ id?: string }>();
-  const tripDetails = tripId ? TRIP_DETAILS[tripId] : null;
-  const [status, setStatus] = useState<TripStatus>(tripId ? 'IN_TRANSIT' : 'GOING_TO_PICKUP');
+    useEffect(() => {
+        Animated.spring(slideAnim, {
+            toValue: 0,
+            useNativeDriver: true,
+            damping: 20,
+            stiffness: 90,
+        }).start();
+    }, []);
 
-  const getActionButton = () => {
-    switch (status) {
-      case 'GOING_TO_PICKUP':
-        return {
-          title: 'Reached Pickup',
-          icon: 'location' as const,
-          onPress: () => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            setStatus('AT_PICKUP');
-          },
-        };
-      case 'AT_PICKUP':
-        return {
-          title: 'Load Complete',
-          icon: 'checkmark-done' as const,
-          onPress: () => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            setStatus('LOADED');
-          },
-        };
-      case 'LOADED':
-        return {
-          title: 'Start Journey',
-          icon: 'car-sport' as const,
-          onPress: () => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            setStatus('IN_TRANSIT');
-          },
-        };
-      case 'IN_TRANSIT':
-        return {
-          title: 'Reached Destination',
-          icon: 'flag' as const,
-          onPress: () => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            setStatus('AT_DESTINATION');
-          },
-        };
-      case 'AT_DESTINATION':
-        return {
-          title: 'Confirm Delivery',
-          icon: 'checkmark-circle' as const,
-          onPress: () => {
-            router.push('/(driver)/delivery-confirmation');
-          },
-        };
-    }
-  };
+    const renderTimelineItem = (item: any, index: number) => {
+        const isCompleted = item.status === 'completed';
+        const isCurrent = item.status === 'current';
 
-  const action = getActionButton();
+        return (
+            <View key={item.id} style={styles.timelineItem}>
+                <View style={styles.timelineLeft}>
+                    <View style={styles.timelineLineContainer}>
+                        {!item.isLast && (
+                            <View style={[
+                                styles.timelineLine,
+                                isCompleted && styles.timelineLineActive
+                            ]} />
+                        )}
+                        <View style={[
+                            styles.timelineDot,
+                            isCompleted && styles.timelineDotCompleted,
+                            isCurrent && styles.timelineDotCurrent,
+                        ]}>
+                            {isCompleted && <Ionicons name="checkmark" size={10} color="#FFFFFF" />}
+                            {isCurrent && <View style={styles.currentDotInner} />}
+                        </View>
+                    </View>
+                </View>
+                <View style={styles.timelineContent}>
+                    <View style={styles.timelineHeader}>
+                        <Text style={[
+                            styles.timelineTitle,
+                            isCurrent && styles.textPrimary
+                        ]}>{item.title}</Text>
+                        <Text style={styles.timelineTime}>{item.time}</Text>
+                    </View>
+                    <Text style={styles.timelineLocation}>{item.location}</Text>
+                </View>
+            </View>
+        );
+    };
 
-  return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={[colors.primaryGradientStart, colors.primaryGradientEnd]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.headerGradient}
-      />
-
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={colors.textWhite} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Active Trip</Text>
-          <View style={{ width: 44 }} />
-        </View>
-
-        <View style={styles.content}>
-          {/* Map Placeholder */}
-          <View style={styles.mapPlaceholder}>
-            <Ionicons name="map" size={64} color={colors.textSecondary} />
-            <Text style={styles.mapText}>Map integration coming soon</Text>
-          </View>
-
-          {/* Status Card */}
-          <Card style={styles.statusCard}>
-            <View style={styles.statusHeader}>
-              <StatusChip status={status === 'IN_TRANSIT' ? 'in-transit' : 'active'} />
-              <TouchableOpacity 
-                style={styles.reportButton}
-                onPress={() => router.push('/(driver)/delay-reason')}
-              >
-                <Ionicons name="warning" size={16} color={colors.warning} />
-                <Text style={styles.reportText}>Report Delay</Text>
-              </TouchableOpacity>
+    return (
+        <View style={styles.container}>
+            {/* Map Placeholder Background */}
+            <View style={styles.mapContainer}>
+                <Image
+                    source={{ uri: 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/72.8777,19.0760,11,0/600x800?access_token=placeholder' }}
+                    style={StyleSheet.absoluteFillObject}
+                    resizeMode="cover"
+                />
+                <LinearGradient
+                    colors={['rgba(0,0,0,0.6)', 'transparent', 'transparent']}
+                    style={styles.mapOverlay}
+                />
+                {/* Map Fallback Content since URL requires token */}
+                <View style={[StyleSheet.absoluteFillObject, styles.mapFallback]}>
+                    <Ionicons name="map" size={64} color={textSecondary} style={{ opacity: 0.2 }} />
+                </View>
             </View>
 
-            {tripDetails && (
-              <View style={styles.trackingRow}>
-                <Ionicons name="cube" size={16} color={colors.primary} />
-                <Text style={styles.trackingId}>{tripDetails.trackingId}</Text>
-                <Text style={styles.earningsTag}>₹{tripDetails.earnings.toLocaleString()}</Text>
-              </View>
-            )}
+            <SafeAreaView style={styles.safeArea}>
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                        <Ionicons name="arrow-back" size={24} color={text} />
+                    </TouchableOpacity>
 
-            <View style={styles.routeInfo}>
-              <View style={styles.routeRow}>
-                <Ionicons name="location" size={20} color={colors.primary} />
-                <View>
-                  <Text style={styles.routeLabel}>Pickup</Text>
-                  <Text style={styles.routeText}>{tripDetails?.from ?? 'Mumbai, Maharashtra'}</Text>
-                </View>
-              </View>
-              <View style={styles.routeRow}>
-                <Ionicons name="flag" size={20} color={colors.success} />
-                <View>
-                  <Text style={styles.routeLabel}>Drop</Text>
-                  <Text style={styles.routeText}>{tripDetails?.to ?? 'Delhi, Delhi'}</Text>
-                </View>
-              </View>
-            </View>
+                    <View style={styles.headerTitleContainer}>
+                        <BlurView intensity={80} tint="light" style={styles.headerTitleBlur}>
+                            <Text style={styles.headerTitle}>Active Trip</Text>
+                            <View style={styles.statusPill}>
+                                <View style={styles.statusDot} />
+                                <Text style={styles.statusText}>On Time</Text>
+                            </View>
+                        </BlurView>
+                    </View>
 
-            {tripDetails && (
-              <View style={styles.detailsGrid}>
-                <View style={styles.detailRow}>
-                  <Ionicons name="cube" size={18} color={colors.textSecondary} />
-                  <Text style={styles.detailLabel}>Material</Text>
-                  <Text style={styles.detailValue}>{tripDetails.material}</Text>
+                    <TouchableOpacity style={styles.sosButton}>
+                        <Ionicons name="warning" size={20} color="#FFFFFF" />
+                        <Text style={styles.sosText}>SOS</Text>
+                    </TouchableOpacity>
                 </View>
-                <View style={styles.detailRow}>
-                  <Ionicons name="barbell" size={18} color={colors.textSecondary} />
-                  <Text style={styles.detailLabel}>Weight</Text>
-                  <Text style={styles.detailValue}>{tripDetails.weight}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Ionicons name="car" size={18} color={colors.textSecondary} />
-                  <Text style={styles.detailLabel}>Vehicle</Text>
-                  <Text style={styles.detailValue}>{tripDetails.truckType}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Ionicons name="person" size={18} color={colors.textSecondary} />
-                  <Text style={styles.detailLabel}>Customer</Text>
-                  <Text style={styles.detailValue}>{tripDetails.customerName}</Text>
-                </View>
-              </View>
-            )}
 
-            <View style={styles.statsRow}>
-              <View style={styles.statItem}>
-                <Ionicons name="time" size={18} color={colors.textSecondary} />
-                <View>
-                  <Text style={styles.statLabel}>ETA</Text>
-                  <Text style={styles.statValue}>{tripDetails?.eta ?? '4h 30m'}</Text>
-                </View>
-              </View>
-              <View style={styles.statItem}>
-                <Ionicons name="speedometer" size={18} color={colors.textSecondary} />
-                <View>
-                  <Text style={styles.statLabel}>Remaining</Text>
-                  <Text style={styles.statValue}>{tripDetails?.remainingKm ?? '420 km'}</Text>
-                </View>
-              </View>
-            </View>
+                {/* Bottom Sheet */}
+                <Animated.View
+                    style={[
+                        styles.bottomSheet,
+                        { transform: [{ translateY: slideAnim }] }
+                    ]}
+                >
+                    <View style={styles.handleIndicator} />
 
-            <TouchableOpacity 
-              style={styles.customerButton}
-              onPress={() => tripDetails?.customerPhone && Linking.openURL(`tel:${tripDetails.customerPhone}`)}
-            >
-              <Ionicons name="call" size={20} color={colors.primary} />
-              <Text style={styles.customerText}>Contact Customer{tripDetails ? ` · ${tripDetails.customerName}` : ''}</Text>
-            </TouchableOpacity>
-          </Card>
+                    <ScrollView
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={styles.sheetContent}
+                    >
+                        <View style={styles.tripHeader}>
+                            <View>
+                                <Text style={styles.tripRoute}>Mumbai → Delhi</Text>
+                                <Text style={styles.tripId}>Trip #TRK-8924</Text>
+                            </View>
+                            <TouchableOpacity style={styles.navigationButton}>
+                                <LinearGradient
+                                    colors={theme.gradients.primary as any}
+                                    style={styles.navGradient}
+                                >
+                                    <Ionicons name="navigate" size={24} color="#FFFFFF" />
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </View>
+
+                        <LinearGradient
+                            colors={['rgba(59, 130, 246, 0.08)', 'rgba(96, 165, 250, 0.04)']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.progressCard}
+                        >
+                            <View style={styles.progressStats}>
+                                <View style={styles.statItem}>
+                                    <Text style={styles.statLabel}>Distance Left</Text>
+                                    <Text style={styles.statValue}>850 km</Text>
+                                </View>
+                                <View style={styles.statDivider} />
+                                <View style={styles.statItem}>
+                                    <Text style={styles.statLabel}>Est. Arrival</Text>
+                                    <Text style={styles.statValue}>28 hrs</Text>
+                                </View>
+                            </View>
+                            <View style={styles.progressBarBg}>
+                                <LinearGradient
+                                    colors={theme.gradients.primary as any}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 0 }}
+                                    style={[styles.progressBarFill, { width: '45%' }]}
+                                />
+                            </View>
+                        </LinearGradient>
+
+                        <Text style={styles.sectionTitle}>Trip Timeline</Text>
+                        <View style={styles.timelineContainer}>
+                            {tripTimeline.map(renderTimelineItem)}
+                        </View>
+
+                        <View style={styles.actionsContainer}>
+                            <Button
+                                title="Update Status"
+                                onPress={() => { }}
+                                variant="outline"
+                                style={styles.actionButton}
+                            />
+                            <Button
+                                title="Contact Support"
+                                onPress={() => { }}
+                                variant="secondary"
+                                style={styles.actionButton}
+                            />
+                        </View>
+                    </ScrollView>
+                </Animated.View>
+            </SafeAreaView>
         </View>
-
-        {/* Action Button */}
-        <View style={styles.actionContainer}>
-          <Button
-            title={action.title}
-            variant="gradient"
-            onPress={action.onPress}
-            icon={action.icon}
-            iconPosition="right"
-            fullWidth
-            size="md"
-            style={styles.actionButton}
-          />
-        </View>
-      </SafeAreaView>
-    </View>
-  );
+    );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingTop: spacing.sm,
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  headerGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 160,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: typography.sizes.lg,
-    fontWeight: typography.weights.bold,
-    color: colors.textWhite,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  mapPlaceholder: {
-    height: 200,
-    backgroundColor: colors.backgroundCard,
-    borderRadius: borderRadius.xl,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-    ...shadows.sm,
-  },
-  mapText: {
-    marginTop: spacing.sm,
-    color: colors.textSecondary,
-  },
-  statusCard: {
-    ...shadows.md,
-    marginBottom: spacing.sm,
-  },
-  statusHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  reportButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    backgroundColor: colors.warningLight,
-    borderRadius: borderRadius.full,
-  },
-  reportText: {
-    fontSize: typography.sizes.xs,
-    color: colors.warning,
-    fontWeight: typography.weights.semibold,
-  },
-  trackingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.md,
-    paddingBottom: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  trackingId: {
-    flex: 1,
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.bold,
-    color: colors.primary,
-  },
-  earningsTag: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.bold,
-    color: colors.success,
-  },
-  routeInfo: {
-    gap: spacing.md,
-    marginBottom: spacing.md,
-    paddingBottom: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  routeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  routeLabel: {
-    fontSize: typography.sizes.xs,
-    color: colors.textSecondary,
-    marginBottom: 2,
-  },
-  routeText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
-    color: colors.text,
-  },
-  detailsGrid: {
-    gap: spacing.sm,
-    marginBottom: spacing.md,
-    paddingBottom: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  detailLabel: {
-    width: 72,
-    fontSize: typography.sizes.xs,
-    color: colors.textSecondary,
-  },
-  detailValue: {
-    flex: 1,
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.medium,
-    color: colors.text,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: spacing.lg,
-    marginBottom: spacing.md,
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  statItem: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  statLabel: {
-    fontSize: typography.sizes.xs,
-    color: colors.textSecondary,
-    marginBottom: 2,
-  },
-  statValue: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.bold,
-    color: colors.text,
-  },
-  customerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.primaryTransparent,
-    borderRadius: borderRadius.lg,
-    marginTop: spacing.sm,
-  },
-  customerText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
-    color: colors.primary,
-  },
-  actionContainer: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.md,
-    backgroundColor: colors.backgroundCard,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  actionButton: {
-    marginVertical: 0,
-  },
+    container: {
+        flex: 1,
+        backgroundColor: '#F8FAFC',
+    },
+    mapContainer: {
+        ...StyleSheet.absoluteFillObject,
+        height: height * 0.5,
+    },
+    mapOverlay: {
+        ...StyleSheet.absoluteFillObject,
+    },
+    mapFallback: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#E2E8F0',
+        zIndex: -1,
+    },
+    safeArea: {
+        flex: 1,
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        paddingHorizontal: theme.spacing.lg,
+        paddingTop: theme.spacing.md,
+    },
+    backButton: {
+        width: 40,
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 20,
+        backgroundColor: '#FFFFFF',
+        ...theme.shadows.medium,
+    },
+    headerTitleContainer: {
+        borderRadius: 20,
+        overflow: 'hidden',
+        ...theme.shadows.medium,
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    },
+    headerTitleBlur: {
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        alignItems: 'center',
+    },
+    headerTitle: {
+        fontSize: 16,
+        fontFamily: 'PlusJakartaSans_700Bold',
+        color: text,
+        marginBottom: 2,
+    },
+    statusPill: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    statusDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#10B981',
+    },
+    statusText: {
+        fontSize: 12,
+        color: '#10B981',
+        fontFamily: 'PlusJakartaSans_600SemiBold',
+    },
+    sosButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#EF4444',
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 20,
+        gap: 6,
+        ...theme.shadows.medium,
+    },
+    sosText: {
+        fontSize: 14,
+        color: '#FFFFFF',
+        fontFamily: 'PlusJakartaSans_700Bold',
+    },
+    bottomSheet: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: height * 0.7,
+        backgroundColor: '#FFFFFF',
+        borderTopLeftRadius: 30,
+        borderTopRightRadius: 30,
+        ...theme.shadows.strong,
+        elevation: 20,
+    },
+    handleIndicator: {
+        width: 40,
+        height: 4,
+        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+        borderRadius: 2,
+        alignSelf: 'center',
+        marginTop: 12,
+        marginBottom: 8,
+    },
+    sheetContent: {
+        padding: theme.spacing.lg,
+        paddingBottom: 40,
+    },
+    tripHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: theme.spacing.lg,
+    },
+    tripRoute: {
+        fontSize: 24,
+        fontFamily: 'PlusJakartaSans_700Bold',
+        color: text,
+        marginBottom: 4,
+    },
+    tripId: {
+        fontSize: 14,
+        fontFamily: 'PlusJakartaSans_500Medium',
+        color: textSecondary,
+    },
+    navigationButton: {
+        borderRadius: 28,
+        overflow: 'hidden',
+        ...theme.shadows.glow,
+        elevation: 10,
+    },
+    navGradient: {
+        width: 56,
+        height: 56,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    progressCard: {
+        borderRadius: 20,
+        padding: theme.spacing.lg,
+        marginBottom: theme.spacing.xl,
+        borderWidth: 1,
+        borderColor: 'rgba(59, 130, 246, 0.15)',
+    },
+    progressStats: {
+        flexDirection: 'row',
+        marginBottom: theme.spacing.md,
+    },
+    statItem: {
+        flex: 1,
+    },
+    statLabel: {
+        fontSize: 12,
+        color: textSecondary,
+        marginBottom: 4,
+        fontFamily: 'PlusJakartaSans_500Medium',
+    },
+    statValue: {
+        fontSize: 18,
+        color: text,
+        fontFamily: 'PlusJakartaSans_700Bold',
+    },
+    statDivider: {
+        width: 1,
+        height: '100%',
+        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+        marginHorizontal: theme.spacing.lg,
+    },
+    progressBarBg: {
+        height: 8,
+        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+        borderRadius: 4,
+        overflow: 'hidden',
+    },
+    progressBarFill: {
+        height: '100%',
+        borderRadius: 4,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        color: text,
+        marginBottom: theme.spacing.lg,
+        fontFamily: 'PlusJakartaSans_600SemiBold',
+    },
+    timelineContainer: {
+        marginBottom: theme.spacing.xl,
+    },
+    timelineItem: {
+        flexDirection: 'row',
+        paddingBottom: theme.spacing.lg,
+    },
+    timelineLeft: {
+        width: 30,
+        alignItems: 'center',
+        marginRight: theme.spacing.md,
+    },
+    timelineLineContainer: {
+        alignItems: 'center',
+        height: '100%',
+    },
+    timelineLine: {
+        position: 'absolute',
+        top: 0,
+        bottom: -20,
+        width: 2,
+        backgroundColor: '#E2E8F0',
+        zIndex: -1,
+    },
+    timelineLineActive: {
+        backgroundColor: '#10B981',
+    },
+    timelineDot: {
+        width: 18,
+        height: 18,
+        borderRadius: 9,
+        backgroundColor: '#E2E8F0',
+        borderWidth: 2,
+        borderColor: '#FFFFFF',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1,
+        marginBottom: 4,
+    },
+    timelineDotCompleted: {
+        backgroundColor: '#10B981',
+        borderColor: '#DCFCE7',
+        borderWidth: 0,
+    },
+    timelineDotCurrent: {
+        backgroundColor: '#FFFFFF',
+        borderColor: primary,
+        borderWidth: 2,
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+    },
+    currentDotInner: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: primary,
+    },
+    timelineContent: {
+        flex: 1,
+        paddingTop: 2,
+    },
+    timelineHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 2,
+    },
+    timelineTitle: {
+        fontSize: 15,
+        fontFamily: 'PlusJakartaSans_600SemiBold',
+        color: text,
+    },
+    textPrimary: {
+        color: primary,
+        fontFamily: 'PlusJakartaSans_700Bold',
+    },
+    timelineTime: {
+        fontSize: 12,
+        color: textSecondary,
+        fontFamily: 'PlusJakartaSans_500Medium',
+    },
+    timelineLocation: {
+        fontSize: 13,
+        color: textSecondary,
+        fontFamily: 'PlusJakartaSans_400Regular',
+    },
+    actionsContainer: {
+        gap: theme.spacing.md,
+    },
+    actionButton: {
+        borderRadius: 12,
+    },
 });
-

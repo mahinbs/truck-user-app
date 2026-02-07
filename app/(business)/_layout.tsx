@@ -2,10 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { primary, textSecondary } from '../../constants/Colors';
 
-export default function DriverLayout() {
+export default function BusinessLayout() {
     return (
         <Tabs
             screenOptions={{
@@ -36,18 +36,18 @@ export default function DriverLayout() {
                 }}
             />
             <Tabs.Screen
-                name="loads"
+                name="shipments"
                 options={{
-                    title: 'Loads',
+                    title: 'Shipments',
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="cube" size={size} color={color} />
                     ),
                 }}
             />
             <Tabs.Screen
-                name="earnings"
+                name="wallet"
                 options={{
-                    title: 'Earnings',
+                    title: 'Wallet',
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="wallet" size={size} color={color} />
                     ),
@@ -64,11 +64,27 @@ export default function DriverLayout() {
             />
             {/* Hide other screens from tabs */}
             <Tabs.Screen
-                name="load-details"
+                name="create-shipment-1"
                 options={{ href: null }}
             />
             <Tabs.Screen
-                name="active-trip"
+                name="create-shipment-2"
+                options={{ href: null }}
+            />
+            <Tabs.Screen
+                name="create-shipment-3"
+                options={{ href: null }}
+            />
+            <Tabs.Screen
+                name="available-trucks"
+                options={{ href: null }}
+            />
+            <Tabs.Screen
+                name="booking-confirmation"
+                options={{ href: null }}
+            />
+            <Tabs.Screen
+                name="tracking"
                 options={{ href: null }}
             />
         </Tabs>
@@ -79,8 +95,8 @@ const styles = StyleSheet.create({
     tabBar: {
         position: 'absolute',
         bottom: 20,
-        width: '100%',
-        alignSelf: 'center',
+        left: '5%', // Center with percentage margins
+        right: '5%',
         height: 65,
         borderRadius: 20,
         backgroundColor: 'rgba(255, 255, 255, 0.85)',
@@ -91,5 +107,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.12,
         shadowRadius: 16,
         elevation: 6,
+        paddingBottom: Platform.OS === 'ios' ? 10 : 8,
     },
 });

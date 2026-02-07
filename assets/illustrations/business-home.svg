@@ -1,0 +1,32 @@
+<svg width="240" height="180" viewBox="0 0 240 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Packages/boxes -->
+  <rect x="20" y="80" width="50" height="50" rx="6" fill="#60A5FA" opacity="0.3"/>
+  <rect x="30" y="70" width="50" height="50" rx="6" fill="#60A5FA" opacity="0.5"/>
+  <rect x="40" y="60" width="50" height="50" rx="6" fill="#60A5FA"/>
+  
+  <!-- Truck -->
+  <g transform="translate(100, 60)">
+    <!-- Truck body -->
+    <rect x="0" y="40" width="80" height="50" rx="6" fill="#2563EB"/>
+    
+    <!-- Truck cabin -->
+    <rect x="60" y="25" width="40" height="65" rx="6" fill="#1D4ED8"/>
+    
+    <!-- Window -->
+    <rect x="68" y="32" width="24" height="20" rx="3" fill="#60A5FA"/>
+    
+    <!-- Wheels -->
+    <circle cx="20" cy="95" r="12" fill="#1E293B"/>
+    <circle cx="20" cy="95" r="6" fill="#64748B"/>
+    <circle cx="70" cy="95" r="12" fill="#1E293B"/>
+    <circle cx="70" cy="95" r="6" fill="#64748B"/>
+    
+    <!-- Details on truck body -->
+    <rect x="10" y="50" width="15" height="15" rx="2" fill="#FFFFFF" opacity="0.3"/>
+    <rect x="30" y="50" width="15" height="15" rx="2" fill="#FFFFFF" opacity="0.3"/>
+  </g>
+  
+  <!-- Decorative elements -->
+  <circle cx="200" cy="40" r="8" fill="#EFF6FF"/>
+  <circle cx="220" cy="100" r="6" fill="#EFF6FF"/>
+</svg>

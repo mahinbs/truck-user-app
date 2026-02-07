@@ -1,0 +1,35 @@
+<svg width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="150" cy="150" r="120" fill="#EFF6FF"/>
+  
+  <!-- Phone -->
+  <rect x="100" y="60" width="100" height="180" rx="12" fill="#FFFFFF" stroke="#2563EB" stroke-width="3"/>
+  
+  <!-- Phone screen -->
+  <rect x="110" y="80" width="80" height="140" rx="4" fill="#F8FAFC"/>
+  
+  <!-- Map route line -->
+  <path d="M 130 100 Q 140 120 130 140 T 130 180" stroke="#60A5FA" stroke-width="3" fill="none" stroke-linecap="round"/>
+  
+  <!-- Location pins -->
+  <g transform="translate(125, 95)">
+    <circle cx="0" cy="0" r="8" fill="#10B981"/>
+    <circle cx="0" cy="0" r="3" fill="#FFFFFF"/>
+  </g>
+  
+  <g transform="translate(125, 175)">
+    <circle cx="0" cy="0" r="8" fill="#EF4444"/>
+    <circle cx="0" cy="0" r="3" fill="#FFFFFF"/>
+  </g>
+  
+  <!-- Truck icon on map -->
+  <g transform="translate(145, 130)">
+    <rect x="-8" y="-5" width="16" height="10" rx="2" fill="#2563EB"/>
+    <circle cx="-4" cy="6" r="3" fill="#1E293B"/>
+    <circle cx="4" cy="6" r="3" fill="#1E293B"/>
+  </g>
+  
+  <!-- Decorative dots -->
+  <circle cx="220" cy="100" r="5" fill="#60A5FA" opacity="0.5"/>
+  <circle cx="80" cy="180" r="6" fill="#2563EB" opacity="0.3"/>
+</svg>

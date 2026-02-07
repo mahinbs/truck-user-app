@@ -12,24 +12,19 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import {
-    primary,
-    surface,
-    text,
-    textSecondary
-} from '../../constants/Colors';
+import { primary, surface, text, textSecondary } from '../../constants/Colors';
 import { theme } from '../../constants/theme';
 
 const { width } = Dimensions.get('window');
 
 const transactions = [
-    { id: '1', type: 'credit', title: 'Trip Completed', amount: 24500, date: 'Today, 2:30 PM' },
-    { id: '2', type: 'debit', title: 'Fuel', amount: 3000, date: 'Yesterday, 4:15 PM' },
-    { id: '3', type: 'credit', title: 'Trip Completed', amount: 18200, date: 'Dec 10, 11:20 AM' },
-    { id: '4', type: 'debit', title: 'Maintenance', amount: 5000, date: 'Dec 9, 3:45 PM' },
+    { id: '1', type: 'credit', amount: 24500, description: 'Shipment Payment', date: 'Today, 2:30 PM' },
+    { id: '2', type: 'debit', amount: 18200, description: 'Driver Payment', date: 'Yesterday, 4:15 PM' },
+    { id: '3', type: 'credit', amount: 32000, description: 'Shipment Payment', date: 'Dec 10, 11:20 AM' },
+    { id: '4', type: 'debit', amount: 15000, description: 'Driver Payment', date: 'Dec 9, 3:45 PM' },
 ];
 
-export default function Earnings() {
+export default function Wallet() {
     const router = useRouter();
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -53,7 +48,7 @@ export default function Earnings() {
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                         <Ionicons name="arrow-back" size={24} color={text} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Earnings</Text>
+                    <Text style={styles.headerTitle}>Wallet</Text>
                     <TouchableOpacity style={styles.moreButton}>
                         <Ionicons name="ellipsis-vertical" size={24} color={text} />
                     </TouchableOpacity>
@@ -80,7 +75,7 @@ export default function Earnings() {
                                 <Ionicons name="wallet" size={20} color={text} />
                             </LinearGradient>
                         </View>
-                        <Text style={styles.balanceAmount}>₹1,42,750</Text>
+                        <Text style={styles.balanceAmount}>₹45,300</Text>
                         <Text style={styles.balanceSubtext}>Available to withdraw</Text>
 
                         {/* Quick Actions */}
@@ -129,14 +124,14 @@ export default function Earnings() {
                                 <Ionicons name="trending-down" size={18} color="#EF4444" />
                             </View>
                             <Text style={styles.statLabel}>Expenses</Text>
-                            <Text style={[styles.statValue, { color: '#EF4444' }]}>-₹8,200</Text>
+                            <Text style={[styles.statValue, { color: '#EF4444' }]}>-₹44,200</Text>
                         </LinearGradient>
                     </View>
 
                     {/* Transactions */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionTitle}>Transaction History</Text>
+                            <Text style={styles.sectionTitle}>Recent Transactions</Text>
                             <TouchableOpacity>
                                 <Text style={styles.seeAllText}>See All</Text>
                             </TouchableOpacity>
@@ -164,7 +159,7 @@ export default function Earnings() {
                                             />
                                         </LinearGradient>
                                         <View style={styles.transactionDetails}>
-                                            <Text style={styles.transactionDescription}>{transaction.title}</Text>
+                                            <Text style={styles.transactionDescription}>{transaction.description}</Text>
                                             <Text style={styles.transactionDate}>{transaction.date}</Text>
                                         </View>
                                         <Text
@@ -200,30 +195,25 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: theme.spacing.base,
         paddingVertical: theme.spacing.md,
-        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        ...theme.shadows.light,
     },
     backButton: {
         width: 40,
         height: 40,
         justifyContent: 'center',
         alignItems: 'center',
-        borderRadius: 20,
-        backgroundColor: '#FFFFFF',
-        ...theme.shadows.light,
     },
     headerTitle: {
-        fontSize: 18,
-        fontFamily: 'PlusJakartaSans_700Bold',
+        ...theme.typography.h3,
         color: text,
+        fontWeight: '600',
     },
     moreButton: {
         width: 40,
         height: 40,
         justifyContent: 'center',
         alignItems: 'center',
-        borderRadius: 20,
-        backgroundColor: '#FFFFFF',
-        ...theme.shadows.light,
     },
     scrollView: {
         flex: 1,
@@ -252,9 +242,9 @@ const styles = StyleSheet.create({
         marginBottom: theme.spacing.md,
     },
     balanceLabel: {
+        ...theme.typography.body,
         fontSize: 13,
         color: text,
-        fontFamily: 'PlusJakartaSans_500Medium',
     },
     walletIcon: {
         width: 40,
@@ -264,17 +254,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     balanceAmount: {
+        ...theme.typography.h1,
         fontSize: 34,
         fontWeight: '700',
         color: text,
         marginBottom: theme.spacing.xs,
-        fontFamily: 'PlusJakartaSans_700Bold',
     },
     balanceSubtext: {
+        ...theme.typography.caption,
         fontSize: 12,
         color: textSecondary,
         marginBottom: theme.spacing.lg,
-        fontFamily: 'PlusJakartaSans_500Medium',
     },
     quickActions: {
         flexDirection: 'row',
@@ -295,10 +285,10 @@ const styles = StyleSheet.create({
         marginBottom: theme.spacing.sm,
     },
     actionText: {
+        ...theme.typography.caption,
         fontSize: 11,
         color: text,
         fontWeight: '500',
-        fontFamily: 'PlusJakartaSans_500Medium',
     },
     statsContainer: {
         flexDirection: 'row',
@@ -320,15 +310,15 @@ const styles = StyleSheet.create({
         marginBottom: theme.spacing.sm,
     },
     statLabel: {
+        ...theme.typography.caption,
         fontSize: 11,
         color: textSecondary,
         marginBottom: 2,
-        fontFamily: 'PlusJakartaSans_500Medium',
     },
     statValue: {
+        ...theme.typography.h3,
         fontSize: 18,
         fontWeight: '700',
-        fontFamily: 'PlusJakartaSans_700Bold',
     },
     section: {
         marginTop: theme.spacing.base,
@@ -340,15 +330,14 @@ const styles = StyleSheet.create({
         marginBottom: theme.spacing.base,
     },
     sectionTitle: {
-        fontSize: 18,
+        ...theme.typography.h3,
         color: text,
         fontWeight: '600',
-        fontFamily: 'PlusJakartaSans_600SemiBold',
     },
     seeAllText: {
+        ...theme.typography.bodyMedium,
         color: primary,
         fontWeight: '600',
-        fontFamily: 'PlusJakartaSans_600SemiBold',
     },
     transactionsCard: {
         borderRadius: theme.borderRadius.card,
@@ -372,20 +361,17 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     transactionDescription: {
-        fontSize: 14,
+        ...theme.typography.bodyMedium,
         color: text,
         marginBottom: 2,
-        fontFamily: 'PlusJakartaSans_600SemiBold',
     },
     transactionDate: {
-        fontSize: 12,
+        ...theme.typography.caption,
         color: textSecondary,
-        fontFamily: 'PlusJakartaSans_500Medium',
     },
     transactionAmount: {
-        fontSize: 14,
+        ...theme.typography.bodyMedium,
         fontWeight: '700',
-        fontFamily: 'PlusJakartaSans_700Bold',
     },
     creditAmount: {
         color: '#10B981',
