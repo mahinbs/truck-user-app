@@ -1,14 +1,12 @@
-import { Card } from '@/components/ui/Card';
-import { borderRadius, colors, shadows, spacing, typography } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
+    Animated,
     Dimensions,
-    RefreshControl,
-    Animated as RNAnimated,
+    SafeAreaView,
     ScrollView,
     StyleSheet,
     Switch,
@@ -16,824 +14,489 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Button } from '../../components/shared/Button';
+import { FloatingHeader } from '../../components/shared/FloatingHeader';
+import {
+    primary,
+    surface,
+    text,
+    textSecondary
+} from '../../constants/Colors';
+import { theme } from '../../constants/theme';
 
 const { width } = Dimensions.get('window');
 
-// Mock data
-const mockDriver = {
-  name: 'Raj Kumar',
-  rating: 4.8,
-  totalTrips: 127,
-  vehicleNumber: 'MH 02 AB 1234',
-  vehicleType: 'Container Truck',
-};
-
-const mockIncomingTrips = [
-  {
-    id: '1',
-    from: 'Mumbai, Maharashtra',
-    to: 'Delhi, Delhi',
-    distance: '1,420 km',
-    earnings: 12500,
-    pickupTime: '2024-01-12 08:00 AM',
-    material: 'Electronics',
-    weight: '1200 kg',
-  },
-  {
-    id: '2',
-    from: 'Bangalore, Karnataka',
-    to: 'Chennai, Tamil Nadu',
-    distance: '346 km',
-    earnings: 4500,
-    pickupTime: '2024-01-12 10:30 AM',
-    material: 'Furniture',
-    weight: '2500 kg',
-  },
+const availableLoads = [
+    {
+        id: '1',
+        route: 'Mumbai → Delhi',
+        distance: '1,450 km',
+        weight: '8 Tons',
+        earnings: '₹32,500',
+        pickupTime: 'Tomorrow, 10:00 AM',
+    },
+    {
+        id: '2',
+        route: 'Pune → Bangalore',
+        distance: '850 km',
+        weight: '5 Tons',
+        earnings: '₹22,000',
+        pickupTime: 'Today, 6:00 PM',
+    },
 ];
 
-const mockTodayStats = {
-  tripsCompleted: 2,
-  earnings: 8500,
-  distance: 420,
-  hoursOnline: 6.5,
-};
+export default function DriverHome() {
+    const router = useRouter();
+    const [isOnline, setIsOnline] = useState(false);
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const slideAnim = useRef(new Animated.Value(50)).current;
 
-// Current/active trip (trip in progress) - null when driver has no active trip
-const mockCurrentTrip = {
-  id: 'current-1',
-  trackingId: 'TRK2024001',
-  from: 'Mumbai, Maharashtra',
-  to: 'Delhi, Delhi',
-  status: 'in-transit' as const,
-  progress: 65,
-  earnings: 12500,
-  distance: '1,420 km',
-  remainingKm: 497,
-  eta: '4h 30m',
-  pickupTime: '2024-01-12 08:00 AM',
-  material: 'Electronics',
-  weight: '1200 kg',
-  truckType: 'Container Truck',
-  customerName: 'Alex Morgan',
-  customerPhone: '+91 9876543210',
-};
+    useEffect(() => {
+        Animated.parallel([
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 800,
+                useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 800,
+                useNativeDriver: true,
+            }),
+        ]).start();
+    }, []);
 
-export default function DriverHomeScreen() {
-  const [isOnline, setIsOnline] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const fadeAnim = useRef(new RNAnimated.Value(0)).current;
-  const slideAnim = useRef(new RNAnimated.Value(30)).current;
-
-  useEffect(() => {
-    RNAnimated.parallel([
-      RNAnimated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      RNAnimated.spring(slideAnim, {
-        toValue: 0,
-        tension: 20,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1500);
-  };
-
-  const handleToggleStatus = () => {
-    const newStatus = !isOnline;
-    setIsOnline(newStatus);
-    Haptics.impactAsync(
-      newStatus ? Haptics.ImpactFeedbackStyle.Heavy : Haptics.ImpactFeedbackStyle.Light
-    );
-  };
-
-  return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={[colors.primary + '08', colors.background]}
-        style={styles.headerGradient}
-      />
-
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={colors.primary}
+    return (
+        <View style={styles.container}>
+            <LinearGradient
+                colors={theme.gradients.background as any}
+                style={StyleSheet.absoluteFillObject}
             />
-          }
-        >
-          {/* Online/Offline Toggle Card */}
-          <RNAnimated.View
-            style={[
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
-          >
-            <Card style={styles.statusCard}>
-              <View style={styles.statusContent}>
-                <View style={styles.statusLeft}>
-                  <View
-                    style={[
-                      styles.statusDot,
-                      { backgroundColor: isOnline ? colors.success : colors.textSecondary },
-                    ]}
-                  />
-                  <View>
-                    <Text style={styles.statusTitle}>
-                      {isOnline ? "You're Online" : "You're Offline"}
-                    </Text>
-                    <Text style={styles.statusSubtitle}>
-                      {isOnline
-                        ? 'Receiving trip requests'
-                        : 'Turn on to receive requests'}
-                    </Text>
-                  </View>
-                </View>
-                <Switch
-                  value={isOnline}
-                  onValueChange={handleToggleStatus}
-                  trackColor={{ false: colors.border, true: colors.successLight }}
-                  thumbColor={isOnline ? colors.success : colors.backgroundCard}
-                  ios_backgroundColor={colors.border}
+
+            <SafeAreaView style={styles.safeArea}>
+                <FloatingHeader
+                    greeting="Good Morning"
+                    userName="Rajesh Kumar"
+                    onNotificationPress={() => { }}
+                    onProfilePress={() => router.push('/(driver)/profile')}
                 />
-              </View>
-            </Card>
-          </RNAnimated.View>
 
-          {/* Current Trip (active trip in progress) */}
-          {mockCurrentTrip && (
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Current Trip</Text>
-                <View style={styles.currentTripBadge}>
-                  <View style={[styles.currentTripDot, { backgroundColor: colors.success }]} />
-                  <Text style={styles.currentTripBadgeText}>In Progress</Text>
-                </View>
-              </View>
-              <Card
-                style={styles.currentTripCard}
-                onPress={() => router.push(`/(driver)/active-trip?id=${mockCurrentTrip.id}`)}
-              >
-                <View style={styles.currentTripHeader}>
-                  <View style={styles.currentTripEarnings}>
-                    <Ionicons name="wallet" size={18} color={colors.success} />
-                    <Text style={styles.currentTripEarningsText}>₹{mockCurrentTrip.earnings.toLocaleString()}</Text>
-                  </View>
-                  <View style={styles.currentTripProgressWrap}>
-                    <Text style={styles.currentTripProgressText}>{mockCurrentTrip.progress}%</Text>
-                    <Text style={styles.currentTripProgressLabel}>Complete</Text>
-                  </View>
-                </View>
-
-                <View style={styles.currentTripProgressBar}>
-                  <LinearGradient
-                    colors={[colors.primaryGradientStart, colors.primaryGradientEnd]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={[styles.currentTripProgressFill, { width: `${mockCurrentTrip.progress}%` }]}
-                  />
-                </View>
-
-                <View style={styles.currentTripRoute}>
-                  <View style={styles.currentTripRoutePoint}>
-                    <LinearGradient
-                      colors={[colors.primary, colors.primaryDark]}
-                      style={styles.currentTripRouteDot}
-                    />
-                    <View style={styles.currentTripRouteInfo}>
-                      <Text style={styles.currentTripRouteLabel}>Pickup</Text>
-                      <Text style={styles.currentTripRouteLocation}>{mockCurrentTrip.from}</Text>
-                    </View>
-                  </View>
-                  <View style={styles.currentTripRouteConnector}>
-                    <View style={styles.currentTripRouteLine} />
-                    <Ionicons name="arrow-down" size={12} color={colors.textSecondary} style={styles.currentTripRouteArrow} />
-                  </View>
-                  <View style={styles.currentTripRoutePoint}>
-                    <LinearGradient
-                      colors={[colors.success, colors.successDark]}
-                      style={[styles.currentTripRouteDot, styles.currentTripRouteDotTo]}
-                    />
-                    <View style={styles.currentTripRouteInfo}>
-                      <Text style={styles.currentTripRouteLabel}>Drop</Text>
-                      <Text style={styles.currentTripRouteLocation}>{mockCurrentTrip.to}</Text>
-                    </View>
-                  </View>
-                </View>
-
-                <View style={styles.currentTripMeta}>
-                  <View style={styles.currentTripMetaItem}>
-                    <Ionicons name="time" size={16} color={colors.textSecondary} />
-                    <Text style={styles.currentTripMetaText}>ETA {mockCurrentTrip.eta}</Text>
-                  </View>
-                  <View style={styles.currentTripMetaItem}>
-                    <Ionicons name="navigate" size={16} color={colors.textSecondary} />
-                    <Text style={styles.currentTripMetaText}>{mockCurrentTrip.remainingKm} km left</Text>
-                  </View>
-                  <View style={styles.currentTripMetaItem}>
-                    <Ionicons name="cube" size={16} color={colors.textSecondary} />
-                    <Text style={styles.currentTripMetaText}>{mockCurrentTrip.material}</Text>
-                  </View>
-                </View>
-
-                <View style={styles.currentTripCta}>
-                  <Text style={styles.currentTripCtaText}>Tap to view full details</Text>
-                  <Ionicons name="chevron-forward" size={20} color={colors.primary} />
-                </View>
-              </Card>
-            </View>
-          )}
-
-          {/* Today's Stats */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Today's Summary</Text>
-            <View style={styles.statsGrid}>
-              <View style={styles.statCard}>
-                <LinearGradient
-                  colors={[colors.success, '#059669']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.statGradient}
+                <ScrollView
+                    style={styles.scrollView}
+                    contentContainerStyle={styles.content}
+                    showsVerticalScrollIndicator={false}
                 >
-                  <Ionicons name="checkmark-circle" size={24} color={colors.textWhite} />
-                  <Text style={styles.statValue}>{mockTodayStats.tripsCompleted}</Text>
-                  <Text style={styles.statLabel}>Trips</Text>
-                </LinearGradient>
-              </View>
-
-              <View style={styles.statCard}>
-                <LinearGradient
-                  colors={[colors.blue, colors.blueDark]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.statGradient}
-                >
-                  <Ionicons name="wallet" size={24} color={colors.textWhite} />
-                  <Text style={styles.statValue}>₹{(mockTodayStats.earnings / 1000).toFixed(1)}K</Text>
-                  <Text style={styles.statLabel}>Earned</Text>
-                </LinearGradient>
-              </View>
-
-              <View style={styles.statCard}>
-                <LinearGradient
-                  colors={[colors.info, colors.blueDark]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.statGradient}
-                >
-                  <Ionicons name="speedometer" size={24} color={colors.textWhite} />
-                  <Text style={styles.statValue}>{mockTodayStats.distance}</Text>
-                  <Text style={styles.statLabel}>Km</Text>
-                </LinearGradient>
-              </View>
-            </View>
-          </View>
-
-          {/* Incoming Trips */}
-          {isOnline && mockIncomingTrips.length > 0 && (
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>New Trip Requests</Text>
-                <View style={styles.requestCount}>
-                  <Text style={styles.requestCountText}>{mockIncomingTrips.length}</Text>
-                </View>
-              </View>
-
-              {mockIncomingTrips.map((trip, index) => {
-                const cardStyle = index === 0 
-                  ? styles.tripCard 
-                  : { ...styles.tripCard, marginTop: spacing.md };
-                return (
-                <Card
-                  key={trip.id}
-                  style={cardStyle}
-                  onPress={() => router.push(`/(driver)/trip-request?id=${trip.id}`)}
-                >
-                  <View style={styles.tripHeader}>
-                    <View style={styles.earningsTag}>
-                      <Ionicons name="wallet" size={16} color={colors.success} />
-                      <Text style={styles.earningsText}>₹{trip.earnings.toLocaleString()}</Text>
-                    </View>
-                    <View style={styles.distanceTag}>
-                      <Ionicons name="location" size={14} color={colors.textSecondary} />
-                      <Text style={styles.distanceText}>{trip.distance}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.tripRoute}>
-                    <View style={styles.routePoint}>
-                      <View style={styles.routeDotFrom} />
-                      <View style={styles.routeInfo}>
-                        <Text style={styles.routeLabel}>Pickup</Text>
-                        <Text style={styles.routeLocation}>{trip.from}</Text>
-                        <Text style={styles.routeTime}>{trip.pickupTime}</Text>
-                      </View>
-                    </View>
-
-                    <View style={styles.routeConnector} />
-
-                    <View style={styles.routePoint}>
-                      <View style={styles.routeDotTo} />
-                      <View style={styles.routeInfo}>
-                        <Text style={styles.routeLabel}>Drop</Text>
-                        <Text style={styles.routeLocation}>{trip.to}</Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  <View style={styles.tripFooter}>
-                    <View style={styles.tripDetail}>
-                      <Ionicons name="cube" size={14} color={colors.textSecondary} />
-                      <Text style={styles.tripDetailText}>{trip.material}</Text>
-                    </View>
-                    <View style={styles.tripDetail}>
-                      <Ionicons name="barbell" size={14} color={colors.textSecondary} />
-                      <Text style={styles.tripDetailText}>{trip.weight}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.tripActions}>
-                    <TouchableOpacity
-                      style={styles.rejectButton}
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      }}
+                    <Animated.View
+                        style={{
+                            opacity: fadeAnim,
+                            transform: [{ translateY: slideAnim }],
+                        }}
                     >
-                      <Text style={styles.rejectButtonText}>Reject</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.acceptButton}
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                        router.push(`/(driver)/trip-request?id=${trip.id}`);
-                      }}
-                    >
-                      <LinearGradient
-                        colors={[colors.primaryGradientStart, colors.primaryGradientEnd]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={styles.acceptButtonGradient}
-                      >
-                        <Text style={styles.acceptButtonText}>View Details</Text>
-                        <Ionicons name="arrow-forward" size={16} color={colors.textWhite} />
-                      </LinearGradient>
-                    </TouchableOpacity>
-                  </View>
-                </Card>
-                );
-              })}
-            </View>
-          )}
+                        {/* Earnings Summary Card */}
+                        <LinearGradient
+                            colors={['rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.5)']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.summaryCard}
+                        >
+                            <BlurView intensity={20} tint="light" style={styles.summaryBlur}>
+                                <View style={styles.summaryRow}>
+                                    <View style={styles.summaryItem}>
+                                        <Text style={styles.summaryLabel}>Today's Earnings</Text>
+                                        <Text style={styles.summaryValue}>₹8,450</Text>
+                                    </View>
+                                    <View style={styles.summaryItem}>
+                                        <View style={styles.ratingContainer}>
+                                            <LinearGradient
+                                                colors={['rgba(245, 158, 11, 0.2)', 'rgba(251, 191, 36, 0.1)']}
+                                                style={styles.ratingIcon}
+                                            >
+                                                <Ionicons name="star" size={16} color="#F59E0B" />
+                                            </LinearGradient>
+                                            <View>
+                                                <Text style={[styles.ratingValue, { color: '#F59E0B' }]}>4.8</Text>
+                                                <Text style={styles.summaryLabel}>Rating</Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                </View>
+                                <View style={styles.divider} />
+                                <View style={styles.summaryRow}>
+                                    <View style={styles.summaryItem}>
+                                        <Text style={styles.summaryLabel}>Active Trips</Text>
+                                        <Text style={styles.summaryValue}>2</Text>
+                                    </View>
+                                    <View style={styles.summaryItem}>
+                                        <Text style={styles.summaryLabel}>Total Trips</Text>
+                                        <Text style={styles.summaryValue}>245</Text>
+                                    </View>
+                                </View>
+                            </BlurView>
+                        </LinearGradient>
 
-          {/* Offline Message */}
-          {!isOnline && (
-            <View style={styles.offlineMessage}>
-              <Ionicons name="moon" size={48} color={colors.textSecondary} />
-              <Text style={styles.offlineTitle}>You're Currently Offline</Text>
-              <Text style={styles.offlineSubtitle}>
-                Turn on your status to start receiving trip requests
-              </Text>
-            </View>
-          )}
+                        {/* Go Online Toggle */}
+                        <LinearGradient
+                            colors={isOnline
+                                ? ['rgba(16, 185, 129, 0.1)', 'rgba(52, 211, 153, 0.05)']
+                                : ['rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.3)']
+                            }
+                            style={styles.toggleCard}
+                        >
+                            <BlurView intensity={20} tint="light" style={styles.toggleBlur}>
+                                <View style={styles.toggleContent}>
+                                    <View style={styles.toggleLeft}>
+                                        <View style={[styles.statusDot, isOnline && styles.statusDotOnline]}>
+                                            {isOnline && <View style={styles.statusDotPulse} />}
+                                        </View>
+                                        <View>
+                                            <Text style={styles.toggleTitle}>
+                                                {isOnline ? 'You are Online' : 'You are Offline'}
+                                            </Text>
+                                            <Text style={styles.toggleSubtitle}>
+                                                {isOnline ? 'Ready to accept loads' : 'Switch on to receive loads'}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                    <Switch
+                                        value={isOnline}
+                                        onValueChange={setIsOnline}
+                                        trackColor={{ false: '#E2E8F0', true: '#10B981' }}
+                                        thumbColor={surface}
+                                        ios_backgroundColor="#E2E8F0"
+                                    />
+                                </View>
+                            </BlurView>
+                        </LinearGradient>
 
-          <View style={styles.bottomSpacer} />
-        </ScrollView>
-      </SafeAreaView>
-    </View>
-  );
+                        {/* Available Loads */}
+                        {isOnline && (
+                            <View style={styles.section}>
+                                <View style={styles.sectionHeader}>
+                                    <Text style={styles.sectionTitle}>Available Loads</Text>
+                                    <TouchableOpacity onPress={() => router.push('/(driver)/loads')}>
+                                        <Text style={styles.seeAllText}>See All</Text>
+                                    </TouchableOpacity>
+                                </View>
+
+                                {availableLoads.map((load, index) => (
+                                    <TouchableOpacity
+                                        key={load.id}
+                                        activeOpacity={0.9}
+                                        onPress={() => router.push(`/(driver)/load-details?id=${load.id}`)}
+                                    >
+                                        <LinearGradient
+                                            colors={['rgba(59, 130, 246, 0.08)', 'rgba(96, 165, 250, 0.04)']}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 1 }}
+                                            style={styles.loadCard}
+                                        >
+                                            <BlurView intensity={40} tint="light" style={styles.loadBlur}>
+                                                <View style={styles.loadHeader}>
+                                                    <View style={styles.routeContainer}>
+                                                        <Text style={styles.loadRoute}>{load.route}</Text>
+                                                        <Text style={styles.loadEarnings}>{load.earnings}</Text>
+                                                    </View>
+                                                </View>
+
+                                                <View style={styles.loadDetails}>
+                                                    <View style={styles.loadDetailItem}>
+                                                        <LinearGradient
+                                                            colors={['rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.4)']}
+                                                            style={styles.detailIcon}
+                                                        >
+                                                            <Ionicons name="navigate-outline" size={16} color={textSecondary} />
+                                                        </LinearGradient>
+                                                        <Text style={styles.loadDetailText}>{load.distance}</Text>
+                                                    </View>
+                                                    <View style={styles.loadDetailItem}>
+                                                        <LinearGradient
+                                                            colors={['rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.4)']}
+                                                            style={styles.detailIcon}
+                                                        >
+                                                            <Ionicons name="cube-outline" size={16} color={textSecondary} />
+                                                        </LinearGradient>
+                                                        <Text style={styles.loadDetailText}>{load.weight}</Text>
+                                                    </View>
+                                                    <View style={styles.loadDetailItem}>
+                                                        <LinearGradient
+                                                            colors={['rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.4)']}
+                                                            style={styles.detailIcon}
+                                                        >
+                                                            <Ionicons name="time-outline" size={16} color={textSecondary} />
+                                                        </LinearGradient>
+                                                        <Text style={styles.loadDetailText}>{load.pickupTime}</Text>
+                                                    </View>
+                                                </View>
+
+                                                <Button
+                                                    title="View Details"
+                                                    onPress={() => router.push(`/(driver)/load-details?id=${load.id}`)}
+                                                    variant="secondary"
+                                                    style={styles.viewButton}
+                                                />
+                                            </BlurView>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        )}
+
+                        {/* Offline Message */}
+                        {!isOnline && (
+                            <View style={styles.offlineMessage}>
+                                <LinearGradient
+                                    colors={['rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.2)']}
+                                    style={styles.offlineIcon}
+                                >
+                                    <Ionicons name="cloud-offline-outline" size={48} color={textSecondary} />
+                                </LinearGradient>
+                                <Text style={styles.offlineTitle}>You are currently offline</Text>
+                                <Text style={styles.offlineText}>
+                                    Go online to start receiving new load offers and track your earnings.
+                                </Text>
+                            </View>
+                        )}
+                    </Animated.View>
+                </ScrollView>
+            </SafeAreaView>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingTop: spacing.sm,
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  headerGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 240,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  greeting: {
-    fontSize: typography.sizes.xl,
-    fontWeight: typography.weights.bold,
-    color: colors.text,
-  },
-  subtitle: {
-    fontSize: typography.sizes.sm,
-    color: colors.textSecondary,
-    opacity: 0.9,
-    marginTop: 2,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  statusCard: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.lg,
-    ...shadows.md,
-  },
-  statusContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statusLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    flex: 1,
-  },
-  statusDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  statusTitle: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
-    color: colors.text,
-    marginBottom: 2,
-  },
-  statusSubtitle: {
-    fontSize: typography.sizes.sm,
-    color: colors.textSecondary,
-  },
-  section: {
-    marginBottom: spacing.xl,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.md,
-  },
-  sectionTitle: {
-    fontSize: typography.sizes.lg,
-    fontWeight: typography.weights.bold,
-    color: colors.text,
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.md,
-  },
-  requestCount: {
-    backgroundColor: colors.error,
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: 2,
-    borderRadius: borderRadius.full,
-    minWidth: 24,
-    alignItems: 'center',
-  },
-  requestCountText: {
-    fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.bold,
-    color: colors.textWhite,
-  },
-  currentTripBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: colors.successLight,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
-  },
-  currentTripDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  currentTripBadgeText: {
-    fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.semibold,
-    color: colors.success,
-  },
-  currentTripCard: {
-    marginHorizontal: spacing.lg,
-    padding: spacing.lg,
-    ...shadows.md,
-  },
-  currentTripHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  currentTripEarnings: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: colors.successLight,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
-  },
-  currentTripEarningsText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.bold,
-    color: colors.success,
-  },
-  currentTripProgressWrap: {
-    alignItems: 'flex-end',
-  },
-  currentTripProgressText: {
-    fontSize: typography.sizes.lg,
-    fontWeight: typography.weights.bold,
-    color: colors.primary,
-  },
-  currentTripProgressLabel: {
-    fontSize: typography.sizes.xs,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  currentTripProgressBar: {
-    height: 8,
-    backgroundColor: colors.border,
-    borderRadius: borderRadius.full,
-    overflow: 'hidden',
-    marginBottom: spacing.lg,
-  },
-  currentTripProgressFill: {
-    height: '100%',
-    borderRadius: borderRadius.full,
-  },
-  currentTripRoute: {
-    marginBottom: spacing.lg,
-  },
-  currentTripRoutePoint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  currentTripRouteDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-  },
-  currentTripRouteDotTo: {},
-  currentTripRouteConnector: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 20,
-    marginLeft: 6,
-    marginVertical: 2,
-  },
-  currentTripRouteLine: {
-    width: 2,
-    height: '100%',
-    backgroundColor: colors.border,
-  },
-  currentTripRouteArrow: {
-    position: 'absolute',
-  },
-  currentTripRouteInfo: {
-    marginLeft: spacing.md,
-    flex: 1,
-  },
-  currentTripRouteLabel: {
-    fontSize: typography.sizes.xs,
-    color: colors.textSecondary,
-    marginBottom: 2,
-  },
-  currentTripRouteLocation: {
-    fontSize: typography.sizes.sm,
-    color: colors.text,
-    fontWeight: typography.weights.medium,
-  },
-  currentTripMeta: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
-    marginBottom: spacing.md,
-    paddingBottom: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  currentTripMetaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  currentTripMetaText: {
-    fontSize: typography.sizes.xs,
-    color: colors.textSecondary,
-  },
-  currentTripCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    paddingTop: spacing.xs,
-  },
-  currentTripCtaText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
-    color: colors.primary,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    paddingHorizontal: spacing.lg,
-    gap: spacing.sm,
-  },
-  statCard: {
-    flex: 1,
-    borderRadius: borderRadius.xl,
-    overflow: 'hidden',
-    ...shadows.lg,
-  },
-  statGradient: {
-    padding: spacing.md,
-    alignItems: 'center',
-    minHeight: 100,
-    justifyContent: 'center',
-  },
-  statValue: {
-    fontSize: typography.sizes.xl,
-    fontWeight: typography.weights.bold,
-    color: colors.textWhite,
-    marginTop: spacing.xs,
-  },
-  statLabel: {
-    fontSize: typography.sizes.xs,
-    color: colors.textWhite,
-    opacity: 0.9,
-    marginTop: spacing.xs - 2,
-  },
-  tripCard: {
-    marginHorizontal: spacing.lg,
-    ...shadows.sm,
-  },
-  tripHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: spacing.md,
-  },
-  earningsTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: colors.successLight,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
-  },
-  earningsText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.bold,
-    color: colors.success,
-  },
-  distanceTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs - 2,
-  },
-  distanceText: {
-    fontSize: typography.sizes.sm,
-    color: colors.textSecondary,
-  },
-  tripRoute: {
-    marginBottom: spacing.md,
-  },
-  routePoint: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  routeDotFrom: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: colors.primary,
-    marginTop: 4,
-  },
-  routeDotTo: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: colors.success,
-    marginTop: 4,
-  },
-  routeConnector: {
-    width: 2,
-    height: 20,
-    backgroundColor: colors.border,
-    marginLeft: 5,
-    marginVertical: spacing.xs - 2,
-  },
-  routeInfo: {
-    marginLeft: spacing.md,
-    flex: 1,
-  },
-  routeLabel: {
-    fontSize: typography.sizes.xs,
-    color: colors.textSecondary,
-    marginBottom: 2,
-  },
-  routeLocation: {
-    fontSize: typography.sizes.sm,
-    color: colors.text,
-    fontWeight: typography.weights.medium,
-    marginBottom: 2,
-  },
-  routeTime: {
-    fontSize: typography.sizes.xs,
-    color: colors.textSecondary,
-  },
-  tripFooter: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    marginBottom: spacing.md,
-  },
-  tripDetail: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs - 2,
-  },
-  tripDetailText: {
-    fontSize: typography.sizes.xs,
-    color: colors.textSecondary,
-  },
-  tripActions: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  rejectButton: {
-    flex: 1,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.lg,
-    borderWidth: 2,
-    borderColor: colors.border,
-    alignItems: 'center',
-  },
-  rejectButtonText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
-    color: colors.textSecondary,
-  },
-  acceptButton: {
-    flex: 2,
-    borderRadius: borderRadius.lg,
-    overflow: 'hidden',
-    ...shadows.md,
-  },
-  acceptButtonGradient: {
-    paddingVertical: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-  },
-  acceptButtonText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
-    color: colors.textWhite,
-  },
-  offlineMessage: {
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.xxl,
-  },
-  offlineTitle: {
-    fontSize: typography.sizes.xl,
-    fontWeight: typography.weights.bold,
-    color: colors.text,
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
-  },
-  offlineSubtitle: {
-    fontSize: typography.sizes.md,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  bottomSpacer: {
-    height: 80,
-  },
+    container: {
+        flex: 1,
+    },
+    safeArea: {
+        flex: 1,
+    },
+    scrollView: {
+        flex: 1,
+    },
+    content: {
+        paddingBottom: 100,
+        paddingTop: 10,
+    },
+    summaryCard: {
+        margin: theme.spacing.base,
+        borderRadius: theme.borderRadius.card,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.3)',
+        ...theme.shadows.card,
+    },
+    summaryBlur: {
+        padding: theme.spacing.lg,
+    },
+    summaryRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    summaryItem: {
+        flex: 1,
+    },
+    summaryLabel: {
+        ...theme.typography.caption,
+        fontSize: 11,
+        color: textSecondary,
+        marginBottom: 2,
+    },
+    summaryValue: {
+        ...theme.typography.h2,
+        fontSize: 24,
+        color: text,
+        fontWeight: '700',
+    },
+    divider: {
+        height: 1,
+        backgroundColor: 'rgba(226, 232, 240, 0.5)',
+        marginVertical: theme.spacing.md,
+    },
+    ratingContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: theme.spacing.sm,
+    },
+    ratingIcon: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    },
+    ratingValue: {
+        ...theme.typography.h3,
+        fontSize: 18,
+        fontWeight: '700',
+    },
+    toggleCard: {
+        marginHorizontal: theme.spacing.base,
+        borderRadius: theme.borderRadius.card,
+        marginBottom: theme.spacing.base,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.3)',
+        overflow: 'hidden',
+    },
+    toggleBlur: {
+        padding: theme.spacing.base,
+    },
+    toggleContent: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    toggleLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+        gap: theme.spacing.md,
+    },
+    statusDot: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        backgroundColor: '#CBD5E1',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    statusDotOnline: {
+        backgroundColor: '#10B981',
+        ...theme.shadows.glow,
+        shadowColor: '#10B981',
+    },
+    statusDotPulse: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        backgroundColor: 'rgba(16, 185, 129, 0.3)',
+        position: 'absolute',
+    },
+    toggleTitle: {
+        ...theme.typography.bodyMedium,
+        fontSize: 16,
+        color: text,
+        fontWeight: '600',
+        marginBottom: 2,
+    },
+    toggleSubtitle: {
+        ...theme.typography.caption,
+        fontSize: 12,
+        color: textSecondary,
+    },
+    section: {
+        marginTop: theme.spacing.md,
+        paddingHorizontal: theme.spacing.base,
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: theme.spacing.base,
+    },
+    sectionTitle: {
+        ...theme.typography.h3,
+        fontSize: 18,
+        color: text,
+        fontWeight: '600',
+    },
+    seeAllText: {
+        ...theme.typography.bodyMedium,
+        fontSize: 14,
+        color: primary,
+        fontWeight: '500',
+    },
+    loadCard: {
+        borderRadius: theme.borderRadius.card,
+        overflow: 'hidden',
+        marginBottom: theme.spacing.base,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.4)',
+        ...theme.shadows.card,
+    },
+    loadBlur: {
+        padding: theme.spacing.base,
+    },
+    loadHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: theme.spacing.base,
+    },
+    routeContainer: {
+        flex: 1,
+    },
+    loadRoute: {
+        ...theme.typography.h3,
+        fontSize: 18,
+        color: text,
+        fontWeight: '600',
+        marginBottom: 4,
+    },
+    loadEarnings: {
+        ...theme.typography.h3,
+        fontSize: 20,
+        color: primary,
+        fontWeight: '700',
+    },
+    loadDetails: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: theme.spacing.base,
+        marginBottom: theme.spacing.base,
+    },
+    loadDetailItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: theme.spacing.xs,
+        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+        paddingVertical: 4,
+        paddingHorizontal: 8,
+        borderRadius: 8,
+    },
+    detailIcon: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadDetailText: {
+        ...theme.typography.caption,
+        fontSize: 12,
+        color: text,
+        fontWeight: '500',
+    },
+    viewButton: {
+        borderRadius: theme.borderRadius.button,
+    },
+    offlineMessage: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: theme.spacing.xxxl,
+        paddingHorizontal: theme.spacing.xxl,
+    },
+    offlineIcon: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: theme.spacing.lg,
+    },
+    offlineTitle: {
+        ...theme.typography.h3,
+        fontSize: 18,
+        color: text,
+        fontWeight: '600',
+        marginBottom: theme.spacing.xs,
+        textAlign: 'center',
+    },
+    offlineText: {
+        ...theme.typography.body,
+        fontSize: 14,
+        color: textSecondary,
+        textAlign: 'center',
+        lineHeight: 20,
+    },
 });
-

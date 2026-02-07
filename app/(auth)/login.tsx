@@ -1,284 +1,304 @@
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { borderRadius, colors, spacing, typography } from '@/constants/theme';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Dimensions, KeyboardAvoidingView, Platform, Animated as RNAnimated, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+    Animated,
+    Dimensions,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native';
+import { Button } from '../../components/shared/Button';
+import { Input } from '../../components/shared/Input';
+import { Colors } from '../../constants/Colors';
+import { theme } from '../../constants/theme';
 
-const { width: screenWidth } = Dimensions.get('window');
+const { height, width } = Dimensions.get('window');
 
-export default function LoginScreen() {
-  const [phone, setPhone] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  
-  const fadeAnim = useRef(new RNAnimated.Value(0)).current;
-  const slideAnim = useRef(new RNAnimated.Value(50)).current;
+export default function Login() {
+    const router = useRouter();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const slideAnim = useRef(new Animated.Value(50)).current;
 
-  useEffect(() => {
-    RNAnimated.parallel([
-      RNAnimated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      RNAnimated.spring(slideAnim, {
-        toValue: 0,
-        tension: 20,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
+    useEffect(() => {
+        Animated.parallel([
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 800,
+                useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 800,
+                useNativeDriver: true,
+                easing: (t) => t * (2 - t),
+            }),
+        ]).start();
+    }, []);
 
-  const handleLogin = () => {
-    if (!phone.trim()) {
-      setError('Phone number is required');
-      return;
-    }
+    const handleLogin = () => {
+        // For demo, navigate to business home
+        router.replace('/(business)/home');
+    };
 
-    if (!/^\d{10}$/.test(phone.replace(/\D/g, ''))) {
-      setError('Please enter a valid 10-digit phone number');
-      return;
-    }
+    return (
+        <View style={styles.container}>
+            <StatusBar barStyle="dark-content" />
 
-    setError('');
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      router.push({
-        pathname: '/(auth)/verify-otp',
-        params: { phone, type: 'login' },
-      });
-    }, 1000);
-  };
+            {/* Top decorative element */}
+            <View style={styles.topDecoration}>
+                <Image
+                    source={require('../../assets/truck-image/truck-highway-sunny-sky_23-2151998705.jpg')}
+                    style={styles.headerImage}
+                />
+                <View style={styles.overlay} />
+            </View>
 
-  return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={[colors.primaryGradientStart, colors.primaryGradientEnd]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 0.3 }}
-        style={styles.headerGradient}
-      >
-        {/* Decorative circles */}
-        <View style={[styles.decorCircle, styles.decorCircle1]} />
-        <View style={[styles.decorCircle, styles.decorCircle2]} />
-      </LinearGradient>
-
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <KeyboardAvoidingView
-          style={styles.keyboardView}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Logo Section */}
-            <RNAnimated.View 
-              style={[
-                styles.logoSection,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: slideAnim }],
-                },
-              ]}
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={styles.keyboardView}
             >
-              <View style={styles.logoContainer}>
-                <Ionicons name="car-sport" size={60} color={colors.textWhite} />
-              </View>
-              <Text style={styles.logoText}>TruckFlow</Text>
-              <Text style={styles.tagline}>Your Trusted Logistics Partner</Text>
-            </RNAnimated.View>
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    <Animated.View style={[
+                        styles.content,
+                        {
+                            opacity: fadeAnim,
+                            transform: [{ translateY: slideAnim }]
+                        }
+                    ]}>
 
-            {/* Form Card */}
-            <RNAnimated.View 
-              style={[
-                styles.formCard,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: slideAnim }],
-                },
-              ]}
-            >
-              <Text style={styles.title}>Welcome Back</Text>
-              <Text style={styles.subtitle}>
-                Sign in to manage your shipments
-              </Text>
+                        <View style={styles.headerContainer}>
+                            <View style={styles.logoRow}>
+                                <View style={styles.logoContainer}>
+                                    <Image
+                                        source={require('../../assets/images/Applogo.png')}
+                                        style={styles.logoImage}
+                                        resizeMode="cover"
+                                    />
+                                </View>
+                                {/* Removed separate text */}
+                            </View>
+                            <Text style={styles.welcomeTitle}>Welcome Back!</Text>
+                            <Text style={styles.welcomeSubtitle}>
+                                Sign in to manage your shipments and fleet
+                            </Text>
+                        </View>
 
-              <View style={styles.inputContainer}>
-                <Input
-                  label="Phone Number"
-                  placeholder="Enter phone number"
-                  value={phone}
-                  onChangeText={(text) => {
-                    setPhone(text);
-                    setError('');
-                  }}
-                  keyboardType="phone-pad"
-                  icon="call"
-                  error={error}
-                />
-              </View>
+                        <View style={styles.formContainer}>
+                            <Input
+                                label="Email Address"
+                                value={email}
+                                onChangeText={setEmail}
+                                placeholder="Enter your email"
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                                containerStyle={styles.input}
+                            />
+                            <View>
+                                <Input
+                                    label="Password"
+                                    value={password}
+                                    onChangeText={setPassword}
+                                    placeholder="Enter your password"
+                                    secureTextEntry
+                                    containerStyle={styles.input}
+                                />
+                                <Text style={styles.forgotPassword}>Forgot Password?</Text>
+                            </View>
 
-              <View style={styles.buttonContainer}>
-                <Button
-                  title="Sign In"
-                  onPress={handleLogin}
-                  loading={loading}
-                  disabled={!phone}
-                  variant="gradient"
-                  size="lg"
-                  icon="arrow-forward"
-                  iconPosition="right"
-                  fullWidth
-                />
-              </View>
+                            <Button
+                                title="Sign In"
+                                onPress={handleLogin}
+                                variant="primary"
+                                fullWidth
+                                style={styles.loginButton}
+                                textStyle={styles.loginButtonText}
+                            />
 
-              <View style={styles.divider}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>or</Text>
-                <View style={styles.dividerLine} />
-              </View>
+                            <View style={styles.dividerContainer}>
+                                <View style={styles.divider} />
+                                <Text style={styles.dividerText}>Or continue with</Text>
+                                <View style={styles.divider} />
+                            </View>
 
-              <View style={styles.buttonContainer}>
-                <Button
-                  title="Create New Account"
-                  onPress={() => router.push('/(auth)/signup')}
-                  variant="outline"
-                  size="lg"
-                  icon="person-add"
-                  fullWidth
-                />
-              </View>
-            </RNAnimated.View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </View>
-  );
+                            <View style={styles.socialButtons}>
+                                <Button
+                                    title="Google"
+                                    onPress={() => { }}
+                                    variant="outline"
+                                    style={styles.socialBtn}
+                                    textStyle={styles.socialBtnText}
+                                />
+                                <Button
+                                    title="Apple"
+                                    onPress={() => { }}
+                                    variant="outline"
+                                    style={styles.socialBtn}
+                                    textStyle={styles.socialBtnText}
+                                />
+                            </View>
+
+                            <View style={styles.signupContainer}>
+                                <Text style={styles.signupText}>Don't have an account? </Text>
+                                <Text
+                                    style={styles.signupLink}
+                                    onPress={() => router.push('/(auth)/signup')}
+                                >
+                                    Sign Up
+                                </Text>
+                            </View>
+                        </View>
+                    </Animated.View>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  headerGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 400,
-    overflow: 'hidden',
-  },
-  decorCircle: {
-    position: 'absolute',
-    borderRadius: 9999,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  decorCircle1: {
-    width: screenWidth * 0.8,
-    height: screenWidth * 0.8,
-    top: -screenWidth * 0.4,
-    right: -screenWidth * 0.2,
-  },
-  decorCircle2: {
-    width: screenWidth * 0.6,
-    height: screenWidth * 0.6,
-    top: 150,
-    left: -screenWidth * 0.3,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.xxl,
-    alignItems: 'center',
-  },
-  logoSection: {
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-    marginTop: spacing.lg,
-  },
-  logoContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  logoText: {
-    fontSize: typography.sizes['3xl'],
-    fontWeight: typography.weights.bold,
-    color: colors.textWhite,
-    marginBottom: spacing.xs,
-  },
-  tagline: {
-    fontSize: typography.sizes.md,
-    color: colors.textWhite,
-    opacity: 0.9,
-  },
-  formCard: {
-    width: '100%',
-    maxWidth: 420,
-    backgroundColor: colors.backgroundCard,
-    borderRadius: borderRadius.xl,
-    padding: spacing.md,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  buttonContainer: {
-    width: '100%',
-    marginBottom: spacing.xs,
-  },
-  title: {
-    fontSize: typography.sizes['2xl'],
-    fontWeight: typography.weights.bold,
-    color: colors.text,
-    marginBottom: spacing.xs,
-  },
-  subtitle: {
-    fontSize: typography.sizes.md,
-    color: colors.textSecondary,
-    marginBottom: spacing.lg,
-    lineHeight: 22,
-  },
-  inputContainer: {
-    marginBottom: spacing.lg,
-    maxWidth: '100%',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: spacing.xl,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.border,
-  },
-  dividerText: {
-    marginHorizontal: spacing.md,
-    color: colors.textSecondary,
-    fontSize: typography.sizes.sm,
-  },
+    container: {
+        flex: 1,
+        backgroundColor: '#FFFFFF',
+    },
+    topDecoration: {
+        height: height * 0.35,
+        width: '100%',
+        position: 'absolute',
+        top: 0,
+        backgroundColor: '#F1F5F9',
+    },
+    headerImage: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
+    overlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(255,255,255,0.4)', // Heavy fade to white
+    },
+    keyboardView: {
+        flex: 1,
+    },
+    scrollContent: {
+        flexGrow: 1,
+        paddingHorizontal: theme.spacing.md,
+        paddingTop: height * 0.15,
+        paddingBottom: theme.spacing.md,
+    },
+    content: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 32,
+        padding: theme.spacing.md,
+        ...theme.shadows.medium, // Floating card effect
+    },
+    headerContainer: {
+        marginBottom: theme.spacing.xl,
+    },
+    logoRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: theme.spacing.md,
+        gap: 8,
+    },
+    logoContainer: {
+        width: 120,
+        height: 60,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    logoImage: {
+        width: '100%',
+        height: '100%',
+    },
+    brandName: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: Colors.light.text,
+        fontFamily: 'PlusJakartaSans_700Bold',
+        display: 'none', // Hide if not removed from markup
+    },
+    welcomeTitle: {
+        fontSize: 26,
+        fontWeight: '800',
+        color: Colors.light.text,
+        fontFamily: 'PlusJakartaSans_800ExtraBold',
+        marginBottom: theme.spacing.xs,
+    },
+    welcomeSubtitle: {
+        fontSize: 14,
+        color: Colors.light.textSecondary,
+        fontFamily: 'PlusJakartaSans_400Regular',
+    },
+    formContainer: {
+        gap: theme.spacing.md,
+    },
+    input: {
+        marginBottom: 0,
+    },
+    forgotPassword: {
+        alignSelf: 'flex-end',
+        color: Colors.light.primary,
+        fontSize: 14,
+        fontWeight: '600',
+        marginTop: theme.spacing.xs,
+    },
+    loginButton: {
+        marginTop: theme.spacing.sm,
+        borderRadius: 16,
+    },
+    loginButtonText: {
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    dividerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: theme.spacing.sm,
+    },
+    divider: {
+        flex: 1,
+        height: 1,
+        backgroundColor: Colors.light.border,
+    },
+    dividerText: {
+        paddingHorizontal: theme.spacing.sm,
+        color: Colors.light.textTertiary,
+        fontSize: 14,
+    },
+    socialButtons: {
+        flexDirection: 'row',
+        gap: theme.spacing.md,
+    },
+    socialBtn: {
+        flex: 1,
+        borderColor: Colors.light.border,
+        borderRadius: 16,
+    },
+    socialBtnText: {
+        color: Colors.light.text,
+        fontWeight: '500',
+    },
+    signupContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginTop: theme.spacing.md,
+    },
+    signupText: {
+        color: Colors.light.textSecondary,
+        fontSize: 15,
+    },
+    signupLink: {
+        color: Colors.light.primary,
+        fontSize: 15,
+        fontWeight: '700',
+    },
 });
-

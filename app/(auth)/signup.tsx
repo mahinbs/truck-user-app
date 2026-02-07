@@ -1,249 +1,475 @@
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { colors, spacing, typography } from '@/constants/theme';
-import { router } from 'expo-router';
-import React, { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+    Animated,
+    Dimensions,
+    Image,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
+    StatusBar,
     StyleSheet,
     Text,
+    TouchableOpacity,
     View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Button } from '../../components/shared/Button';
+import { Input } from '../../components/shared/Input';
+import { Colors } from '../../constants/Colors';
+import { theme } from '../../constants/theme';
 
-export default function SignupScreen() {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    companyName: '',
-    password: '',
-    confirmPassword: '',
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
+const { height } = Dimensions.get('window');
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+type UserRole = 'business' | 'driver' | null;
 
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
-    }
+export default function Signup() {
+    const router = useRouter();
+    const [step, setStep] = useState<'role' | 'details'>('role');
+    const [selectedRole, setSelectedRole] = useState<UserRole>(null);
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
+    const [password, setPassword] = useState('');
+    const fadeAnim = useRef(new Animated.Value(0)).current;
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
-    }
+    // Animation for transitions
+    useEffect(() => {
+        Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 600,
+            useNativeDriver: true,
+        }).start();
+    }, [step]);
 
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required';
-    } else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) {
-      newErrors.phone = 'Phone number must be 10 digits';
-    }
+    const handleRoleSelect = (role: UserRole) => {
+        setSelectedRole(role);
+    };
 
-    if (!formData.companyName.trim()) {
-      newErrors.companyName = 'Company/Business name is required';
-    }
+    const handleContinue = () => {
+        if (selectedRole) {
+            setStep('details');
+            fadeAnim.setValue(0); // Reset for fade in
+        }
+    };
 
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
+    const handleSignup = () => {
+        if (selectedRole === 'business') {
+            router.replace('/(business)/home');
+        } else {
+            router.replace('/(driver)/home');
+        }
+    };
 
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
+    return (
+        <View style={styles.container}>
+            <StatusBar barStyle="dark-content" />
+            {/* Top decorative element */}
+            <View style={styles.topDecoration}>
+                <Image
+                    source={require('../../assets/truck-image/truck-highway-sunny-sky_23-2151998705.jpg')}
+                    style={styles.headerImage}
+                />
+                <View style={styles.overlay} />
+            </View>
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={styles.keyboardView}
+            >
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
+                        {step === 'role' ? (
+                            <>
+                                {/* Role Selection */}
+                                <View style={styles.headerContainer}>
+                                    <View style={styles.logoRow}>
+                                        <View style={styles.logoContainer}>
+                                            <Image
+                                                source={require('../../assets/images/Applogo.png')}
+                                                style={styles.logoImage}
+                                                resizeMode="cover"
+                                            />
+                                        </View>
+                                        <Text style={styles.brandName}>Join Trukx</Text>
+                                    </View>
+                                    <Text style={styles.title}>Choose Account Type</Text>
+                                    <Text style={styles.subtitle}>
+                                        Select how you'll be using the platform
+                                    </Text>
+                                </View>
 
-  const handleSignup = async () => {
-    if (!validateForm()) return;
+                                <View style={styles.rolesContainer}>
+                                    <TouchableOpacity
+                                        activeOpacity={0.8}
+                                        onPress={() => handleRoleSelect('business')}
+                                        style={[
+                                            styles.roleCard,
+                                            selectedRole === 'business' && styles.roleCardSelected,
+                                        ]}
+                                    >
+                                        <View
+                                            style={[
+                                                styles.roleIconContainer,
+                                                selectedRole === 'business' && styles.roleIconSelected,
+                                            ]}
+                                        >
+                                            <Ionicons
+                                                name="business"
+                                                size={32}
+                                                color={selectedRole === 'business' ? '#FFFFFF' : Colors.light.primary}
+                                            />
+                                        </View>
+                                        <View style={styles.roleInfo}>
+                                            <Text
+                                                style={[
+                                                    styles.roleTitle,
+                                                    selectedRole === 'business' && styles.roleTitleSelected,
+                                                ]}
+                                            >
+                                                Business
+                                            </Text>
+                                            <Text
+                                                style={[
+                                                    styles.roleDescription,
+                                                    selectedRole === 'business' && styles.roleDescriptionSelected,
+                                                ]}
+                                            >
+                                                Book trucks & manage shipments
+                                            </Text>
+                                        </View>
+                                        <View style={[
+                                            styles.radioCircle,
+                                            selectedRole === 'business' && styles.radioActive
+                                        ]}>
+                                            {selectedRole === 'business' && <View style={styles.radioInner} />}
+                                        </View>
+                                    </TouchableOpacity>
 
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      // Navigate to OTP verification
-      router.push({
-        pathname: '/(auth)/verify-otp',
-        params: { phone: formData.phone, type: 'signup' },
-      });
-    }, 1500);
-  };
+                                    <TouchableOpacity
+                                        activeOpacity={0.8}
+                                        onPress={() => handleRoleSelect('driver')}
+                                        style={[
+                                            styles.roleCard,
+                                            selectedRole === 'driver' && styles.roleCardSelected,
+                                        ]}
+                                    >
+                                        <View
+                                            style={[
+                                                styles.roleIconContainer,
+                                                selectedRole === 'driver' && styles.roleIconSelected,
+                                            ]}
+                                        >
+                                            <Ionicons
+                                                name="car"
+                                                size={32}
+                                                color={selectedRole === 'driver' ? '#FFFFFF' : Colors.light.primary}
+                                            />
+                                        </View>
+                                        <View style={styles.roleInfo}>
+                                            <Text
+                                                style={[
+                                                    styles.roleTitle,
+                                                    selectedRole === 'driver' && styles.roleTitleSelected,
+                                                ]}
+                                            >
+                                                Driver
+                                            </Text>
+                                            <Text
+                                                style={[
+                                                    styles.roleDescription,
+                                                    selectedRole === 'driver' && styles.roleDescriptionSelected,
+                                                ]}
+                                            >
+                                                Accept loads & earn money
+                                            </Text>
+                                        </View>
+                                        <View style={[
+                                            styles.radioCircle,
+                                            selectedRole === 'driver' && styles.radioActive
+                                        ]}>
+                                            {selectedRole === 'driver' && <View style={styles.radioInner} />}
+                                        </View>
+                                    </TouchableOpacity>
+                                </View>
 
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.header}>
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>
-              Sign up to start booking truck services
-            </Text>
-          </View>
+                                <View style={styles.roleFooter}>
+                                    <View style={styles.loginContainer}>
+                                        <Text style={styles.loginText}>Already have an account? </Text>
+                                        <Text
+                                            style={styles.loginLink}
+                                            onPress={() => router.push('/(auth)/login')}
+                                        >
+                                            Sign In
+                                        </Text>
+                                    </View>
 
-          <View style={styles.form}>
-            <Input
-              label="Full Name"
-              placeholder="Enter your full name"
-              value={formData.fullName}
-              onChangeText={(text) =>
-                setFormData({ ...formData, fullName: text })
-              }
-              error={errors.fullName}
-              icon="person"
-              autoCapitalize="words"
-            />
+                                    <Button
+                                        title="Continue"
+                                        onPress={handleContinue}
+                                        variant="primary"
+                                        fullWidth
+                                        disabled={!selectedRole}
+                                        style={styles.continueButton}
+                                        textStyle={styles.buttonText}
+                                    />
+                                </View>
+                            </>
+                        ) : (
+                            <>
+                                {/* Details Form */}
+                                <View style={styles.headerContainer}>
+                                    <TouchableOpacity onPress={() => setStep('role')} style={styles.backButton}>
+                                        <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
+                                    </TouchableOpacity>
+                                    <Text style={styles.title}>Create Account</Text>
+                                    <Text style={styles.subtitle}>
+                                        Enter your details to sign up as{' '}
+                                        {selectedRole === 'business' ? 'Business' : 'Driver'}
+                                    </Text>
+                                </View>
 
-            <Input
-              label="Email Address"
-              placeholder="your.email@example.com"
-              value={formData.email}
-              onChangeText={(text) =>
-                setFormData({ ...formData, email: text })
-              }
-              error={errors.email}
-              icon="mail"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
+                                <View style={styles.formContainer}>
+                                    <Input
+                                        label="Full Name"
+                                        value={name}
+                                        onChangeText={setName}
+                                        placeholder="Enter your full name"
+                                        containerStyle={styles.input}
+                                    />
+                                    <Input
+                                        label="Email"
+                                        value={email}
+                                        onChangeText={setEmail}
+                                        placeholder="Enter your email"
+                                        keyboardType="email-address"
+                                        autoCapitalize="none"
+                                        containerStyle={styles.input}
+                                    />
+                                    <Input
+                                        label="Phone"
+                                        value={phone}
+                                        onChangeText={setPhone}
+                                        placeholder="Enter your phone number"
+                                        keyboardType="phone-pad"
+                                        containerStyle={styles.input}
+                                    />
+                                    <Input
+                                        label="Password"
+                                        value={password}
+                                        onChangeText={setPassword}
+                                        placeholder="Create a password"
+                                        secureTextEntry
+                                        containerStyle={styles.input}
+                                    />
 
-            <Input
-              label="Phone Number"
-              placeholder="1234567890"
-              value={formData.phone}
-              onChangeText={(text) =>
-                setFormData({ ...formData, phone: text })
-              }
-              error={errors.phone}
-              icon="call"
-              keyboardType="phone-pad"
-            />
+                                    <Button
+                                        title="Create Account"
+                                        onPress={handleSignup}
+                                        variant="primary"
+                                        fullWidth
+                                        style={styles.signupButton}
+                                        textStyle={styles.buttonText}
+                                    />
 
-            <Input
-              label="Company/Business Name"
-              placeholder="Enter your company name"
-              value={formData.companyName}
-              onChangeText={(text) =>
-                setFormData({ ...formData, companyName: text })
-              }
-              error={errors.companyName}
-              icon="business"
-              autoCapitalize="words"
-            />
-
-            <Input
-              label="Password"
-              placeholder="Create a strong password"
-              value={formData.password}
-              onChangeText={(text) =>
-                setFormData({ ...formData, password: text })
-              }
-              error={errors.password}
-              icon="lock-closed"
-              secureTextEntry
-              showPasswordToggle
-            />
-
-            <Input
-              label="Confirm Password"
-              placeholder="Re-enter your password"
-              value={formData.confirmPassword}
-              onChangeText={(text) =>
-                setFormData({ ...formData, confirmPassword: text })
-              }
-              error={errors.confirmPassword}
-              icon="lock-closed"
-              secureTextEntry
-              showPasswordToggle
-            />
-          </View>
-
-          <View style={styles.buttonContainer}>
-            <Button
-              title="Create Account"
-              onPress={handleSignup}
-              loading={loading}
-              variant="gradient"
-              size="lg"
-              icon="arrow-forward"
-              iconPosition="right"
-              fullWidth
-              style={styles.signupButton}
-            />
-          </View>
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Already have an account? </Text>
-            <Button
-              title="Sign In"
-              onPress={() => router.push('/(auth)/login')}
-              variant="ghost"
-              size="sm"
-            />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
+                                    <View style={styles.loginContainer}>
+                                        <Text style={styles.loginText}>Already have an account? </Text>
+                                        <Text
+                                            style={styles.loginLink}
+                                            onPress={() => router.push('/(auth)/login')}
+                                        >
+                                            Sign In
+                                        </Text>
+                                    </View>
+                                </View>
+                            </>
+                        )}
+                    </Animated.View>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: spacing.lg,
-  },
-  header: {
-    marginBottom: spacing.xl,
-  },
-  title: {
-    fontSize: typography.sizes['3xl'],
-    fontWeight: typography.weights.bold,
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  subtitle: {
-    fontSize: typography.sizes.md,
-    color: colors.textSecondary,
-    lineHeight: 24,
-  },
-  form: {
-    marginBottom: spacing.lg,
-  },
-  buttonContainer: {
-    width: '100%',
-    marginBottom: spacing.md,
-  },
-  signupButton: {
-    marginBottom: 0,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: spacing.md,
-  },
-  footerText: {
-    fontSize: typography.sizes.md,
-    color: colors.textSecondary,
-  },
+    container: {
+        flex: 1,
+        backgroundColor: '#FFFFFF',
+    },
+    topDecoration: {
+        height: height * 0.35,
+        width: '100%',
+        position: 'absolute',
+        top: 0,
+        backgroundColor: '#F1F5F9',
+    },
+    headerImage: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
+    overlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(255, 255, 255, 0.23)',
+    },
+    keyboardView: {
+        flex: 1,
+    },
+    scrollContent: {
+        flexGrow: 1,
+        paddingHorizontal: theme.spacing.md,
+        paddingTop: height * 0.15,
+        paddingBottom: theme.spacing.xl,
+    },
+    content: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 32,
+        padding: theme.spacing.md,
+        ...theme.shadows.medium,
+        minHeight: 400,
+    },
+    headerContainer: {
+        marginBottom: theme.spacing.lg,
+    },
+    logoRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 2,
+    },
+    logoContainer: {
+        width: 100,
+        height: 60,
+    },
+    logoImage: {
+        width: '100%',
+        height: '100%',
+    },
+    brandName: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: Colors.light.primary,
+        fontFamily: 'PlusJakartaSans_700Bold',
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: '800',
+        color: Colors.light.text,
+        fontFamily: 'PlusJakartaSans_800ExtraBold',
+        marginBottom: theme.spacing.xs,
+    },
+    subtitle: {
+        fontSize: 14,
+        color: Colors.light.textSecondary,
+        fontFamily: 'PlusJakartaSans_400Regular',
+    },
+    rolesContainer: {
+        gap: theme.spacing.md,
+        marginBottom: theme.spacing.xl,
+    },
+    roleCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: theme.spacing.md,
+        borderRadius: 20,
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
+        borderColor: Colors.light.border,
+        ...theme.shadows.light,
+    },
+    roleCardSelected: {
+        borderColor: Colors.light.primary,
+        backgroundColor: '#F8FAFC',
+        borderWidth: 2,
+    },
+    roleIconContainer: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: '#F1F5F9',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: theme.spacing.md,
+    },
+    roleIconSelected: {
+        backgroundColor: Colors.light.primary,
+    },
+    roleInfo: {
+        flex: 1,
+    },
+    roleTitle: {
+        ...theme.typography.h3,
+        fontSize: 16,
+        color: Colors.light.text,
+        marginBottom: 2,
+    },
+    roleTitleSelected: {
+        color: Colors.light.primary,
+        fontWeight: '700',
+    },
+    roleDescription: {
+        ...theme.typography.body,
+        fontSize: 13,
+        color: Colors.light.textSecondary,
+    },
+    roleDescriptionSelected: {
+        color: Colors.light.text,
+    },
+    radioCircle: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: Colors.light.border,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    radioActive: {
+        borderColor: Colors.light.primary,
+    },
+    radioInner: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: Colors.light.primary,
+    },
+    continueButton: {
+        marginTop: theme.spacing.lg,
+        borderRadius: 16,
+    },
+    formContainer: {
+        gap: theme.spacing.lg,
+    },
+    input: {
+        marginBottom: 0,
+    },
+    signupButton: {
+        marginTop: theme.spacing.sm,
+        borderRadius: 16,
+    },
+    buttonText: {
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    loginContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    loginText: {
+        color: Colors.light.textSecondary,
+        fontSize: 15,
+    },
+    loginLink: {
+        color: Colors.light.primary,
+        fontSize: 15,
+        fontWeight: '700',
+    },
+    backButton: {
+        marginBottom: theme.spacing.md,
+    },
+    roleFooter: {
+        marginTop: 'auto',
+    }
 });
-
