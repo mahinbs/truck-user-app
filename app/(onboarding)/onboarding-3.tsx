@@ -51,7 +51,7 @@ export default function Onboarding3() {
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
             <ImageBackground
-                source={require('../../assets/truck-image/red-semi-truck-driving-highway-sunset_23-2152005482(1).jpg')} // Tech/Data theme or person using app
+                source={require('@/assets/truck-image/onboarding3.png')} // Tech/Data theme or person using app
                 style={styles.backgroundImage}
                 resizeMode="cover"
             >
@@ -73,7 +73,7 @@ export default function Onboarding3() {
                     <View style={styles.headerTextContainer}>
                         <Text style={styles.titleHighLight}>WHY CHOOSE</Text>
                         <View style={styles.logisticRow}>
-                            <Text style={styles.titleYellow}>TRUKX</Text>
+                            <Text style={styles.titleBlue}>TRUKX</Text>
                             <Text style={styles.titleWhite}>?</Text>
                         </View>
                     </View>
@@ -86,7 +86,7 @@ export default function Onboarding3() {
                     <View style={styles.featuresRow}>
                         {features.map((feature, index) => (
                             <View key={index} style={styles.featureItem}>
-                                <Ionicons name={feature.icon as any} size={24} color="#F59E0B" />
+                                <Ionicons name={feature.icon as any} size={24} color="#6366F1" />
                                 <Text style={styles.featureText}>{feature.title}</Text>
                             </View>
                         ))}
@@ -156,8 +156,8 @@ const styles = StyleSheet.create({
         fontFamily: 'PlusJakartaSans_800ExtraBold',
         letterSpacing: 1,
     },
-    titleYellow: {
-        color: '#F59E0B',
+    titleBlue: {
+        color: '#6366F1',
         fontSize: 32,
         fontWeight: '800',
         fontFamily: 'PlusJakartaSans_800ExtraBold',
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 6,
         borderRadius: 3,
-        backgroundColor: '#F59E0B',
+        backgroundColor: '#6366F1',
     },
     inactiveLine: {
         width: 10,
