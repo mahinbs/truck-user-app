@@ -44,7 +44,7 @@ export default function Onboarding2() {
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
             <ImageBackground
-                source={require('../../assets/truck-image/semi-trailer-truck-driving-road-shipping-truck-transport-freight-trucks-logistic_36860-2210.jpg')} // Warehouse/Tracking themed image
+                source={require('@/assets/truck-image/onboarding2.png')} // Warehouse/Tracking themed image
                 style={styles.backgroundImage}
                 resizeMode="cover"
             >
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
         letterSpacing: 1,
     },
     pillIcon: {
-        backgroundColor: '#F59E0B',
+        backgroundColor: '#6366F1',
         width: 36,
         height: 24,
         borderRadius: 12,
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 6,
         borderRadius: 3,
-        backgroundColor: '#F59E0B',
+        backgroundColor: '#6366F1',
     },
     inactiveLine: {
         width: 10,

@@ -11,7 +11,7 @@ export const Colors = {
         surfaceHighlight: '#F8FAFC',  // Subtle highlight for sections
 
         // Primary Blue - Deep & Premium
-        primary: '#1E40AF',           // Deep Blue for primary actions
+        primary: '#1e3faeff',           // Deep Blue for primary actions
         primaryLight: '#3B82F6',      // Brighter Blue for accents
         primaryLighter: '#EFF6FF',    // Very light blue for backgrounds
         primaryDark: '#1E3A8A',       // Darker shade for text/contrast

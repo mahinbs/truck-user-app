@@ -44,7 +44,7 @@ export default function Onboarding1() {
             <StatusBar barStyle="light-content" />
             <ImageBackground
                 // Using a placeholder image that resembles a truck on a winding road
-                source={require('../../assets/truck-image/truck-driving-asphalt-road-rural-landscape-sunsetcreated-with-generative-ai-technology_132358-10017.jpg')}
+                source={require('@/assets/truck-image/onboarding1.png')}
                 style={styles.backgroundImage}
                 resizeMode="cover"
             >
@@ -70,7 +70,7 @@ export default function Onboarding1() {
                             <View style={styles.iconContainer}>
                                 <Image source={require('../../assets/images/Applogo.png')} style={styles.logoImage} resizeMode="contain" />
                             </View>
-                            <Text style={styles.titleYellow}>GISTIC</Text>
+                            <Text style={styles.titleBlue}>GISTIC</Text>
                         </View>
                         <View style={styles.cargoRow}>
                             <Text style={styles.titleWhite}>& CARG</Text>
@@ -115,6 +115,8 @@ const styles = StyleSheet.create({
         flex: 1,
         width: '100%',
         height: '100%',
+        justifyContent: 'flex-end',
+        alignSelf: 'flex-start',
     },
     gradientOverlay: {
         position: 'absolute',
@@ -151,8 +153,8 @@ const styles = StyleSheet.create({
         fontFamily: 'PlusJakartaSans_800ExtraBold',
         letterSpacing: 1,
     },
-    titleYellow: {
-        color: '#F59E0B',
+    titleBlue: {
+        color: '#6366F1',
         fontSize: width < 380 ? 28 : 32,
         fontWeight: '800',
         fontFamily: 'PlusJakartaSans_800ExtraBold',
@@ -169,11 +171,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     logoImage: {
-        width: 38,
-        height: 38,
+        width: 60,
+        height: 60,
+        transform: [{ scale: 1.5 }],
     },
     pillIcon: {
-        backgroundColor: '#F59E0B',
+        backgroundColor: '#6366F1',
         width: width < 380 ? 32 : 36, // Responsive icon size
         height: 24,
         borderRadius: 12,
@@ -197,7 +200,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 6,
         borderRadius: 3,
-        backgroundColor: '#F59E0B',
+        backgroundColor: '#6366F1',
     },
     inactiveLine: {
         width: 10,
