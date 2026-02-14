@@ -7,6 +7,7 @@ import {
     SafeAreaView,
     ScrollView,
     StyleSheet,
+    Switch,
     Text,
     TouchableOpacity,
     View,
@@ -24,8 +25,9 @@ const loads = [
         status: 'pending' as const,
         distance: '1,450 km',
         weight: '8 Tons',
-        earnings: '₹32,500',
+        earnings: '₹36,400',
         pickupTime: 'Today, 10:00 AM',
+        isUrgent: true,
     },
     {
         id: '2',
@@ -35,6 +37,7 @@ const loads = [
         weight: '5 Tons',
         earnings: '₹22,000',
         pickupTime: 'Dec 10, 2026',
+        isUrgent: false,
     },
     {
         id: '3',
@@ -44,6 +47,7 @@ const loads = [
         weight: '12 Tons',
         earnings: '₹18,500',
         pickupTime: 'Today, 2:00 PM',
+        isUrgent: false,
     },
     {
         id: '4',
@@ -53,6 +57,17 @@ const loads = [
         weight: '15 Tons',
         earnings: '₹42,000',
         pickupTime: 'Yesterday, 8:00 AM',
+        isUrgent: false,
+    },
+    {
+        id: '5',
+        route: 'Nashik → Surat',
+        status: 'pending' as const,
+        distance: '240 km',
+        weight: '3 Tons',
+        earnings: '₹15,000',
+        pickupTime: 'Urgent: Pickup ASAP',
+        isUrgent: true,
     },
 ];
 
@@ -61,12 +76,22 @@ type TabType = 'available' | 'active' | 'completed';
 export default function Loads() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<TabType>('available');
+    const [isUrgentEnabled, setIsUrgentEnabled] = useState(false);
 
     const filteredLoads = loads.filter((l) => {
-        if (activeTab === 'available') return l.status === 'pending';
-        if (activeTab === 'active') return l.status === 'active' || l.status === 'in-transit';
-        if (activeTab === 'completed') return l.status === 'completed';
-        return false;
+        // Tab filtering
+        const tabMatch = (activeTab === 'available' && l.status === 'pending') ||
+            (activeTab === 'active' && (l.status === 'active' || l.status === 'in-transit')) ||
+            (activeTab === 'completed' && l.status === 'completed');
+
+        if (!tabMatch) return false;
+
+        // Urgent filtering (only for available tab)
+        if (activeTab === 'available') {
+            return isUrgentEnabled ? true : !l.isUrgent;
+        }
+
+        return true;
     });
 
     return (
@@ -83,9 +108,21 @@ export default function Loads() {
                         <Ionicons name="arrow-back" size={24} color={text} />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>My Loads</Text>
-                    <TouchableOpacity style={styles.iconButton}>
-                        <Ionicons name="filter" size={24} color={primary} />
-                    </TouchableOpacity>
+                    <View style={styles.headerActions}>
+                        <View style={styles.urgentToggleContainer}>
+                            <Ionicons name="flash" size={16} color={isUrgentEnabled ? '#F59E0B' : textSecondary} />
+                            <Switch
+                                value={isUrgentEnabled}
+                                onValueChange={setIsUrgentEnabled}
+                                trackColor={{ false: '#cbd5e1', true: '#F59E0B' }}
+                                thumbColor={'#fff'}
+                                style={{ transform: [{ scale: 0.8 }] }}
+                            />
+                        </View>
+                        <TouchableOpacity style={styles.iconButton}>
+                            <Ionicons name="filter" size={24} color={primary} />
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 {/* Tabs */}
@@ -133,7 +170,15 @@ export default function Loads() {
                                     style={styles.loadCard}
                                 >
                                     <View style={styles.cardHeader}>
-                                        <Text style={styles.loadRoute}>{load.route}</Text>
+                                        <View style={styles.routeContainer}>
+                                            <Text style={styles.loadRoute}>{load.route}</Text>
+                                            {load.isUrgent && (
+                                                <View style={styles.urgentBadge}>
+                                                    <Ionicons name="flash" size={10} color="#fff" />
+                                                    <Text style={styles.urgentBadgeText}>URGENT</Text>
+                                                </View>
+                                            )}
+                                        </View>
                                         <StatusPill status={load.status} />
                                     </View>
 
@@ -162,10 +207,13 @@ export default function Loads() {
 
                                     <View style={styles.cardFooter}>
                                         <Text style={styles.priceText}>{load.earnings}</Text>
-                                        <View style={styles.actionButton}>
+                                        <TouchableOpacity
+                                            style={styles.actionButton}
+                                            onPress={() => router.push(`/(driver)/load-details?id=${load.id}`)}
+                                        >
                                             <Text style={styles.actionButtonText}>View Details</Text>
                                             <Ionicons name="arrow-forward" size={16} color={primary} />
-                                        </View>
+                                        </TouchableOpacity>
                                     </View>
                                 </LinearGradient>
                             </TouchableOpacity>
@@ -206,6 +254,20 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontFamily: 'PlusJakartaSans_700Bold',
         color: text,
+    },
+    headerActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: theme.spacing.sm,
+    },
+    urgentToggleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        paddingHorizontal: 8,
+        borderRadius: 12,
+        height: 44,
+        ...theme.shadows.light,
     },
     iconButton: {
         width: 44,
@@ -276,12 +338,32 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: theme.spacing.md,
     },
+    routeContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: theme.spacing.xs,
+        marginRight: theme.spacing.sm,
+    },
     loadRoute: {
         fontSize: 18,
         fontFamily: 'PlusJakartaSans_700Bold',
         color: text,
-        flex: 1,
-        marginRight: theme.spacing.sm,
+    },
+    urgentBadge: {
+        backgroundColor: '#F59E0B',
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 6,
+        gap: 2,
+    },
+    urgentBadgeText: {
+        color: '#fff',
+        fontSize: 10,
+        fontWeight: '800',
+        fontFamily: 'PlusJakartaSans_800ExtraBold',
     },
     cardBody: {
         paddingBottom: theme.spacing.md,
@@ -319,9 +401,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     priceText: {
-        fontSize: 20,
-        fontFamily: 'PlusJakartaSans_700Bold',
+        fontSize: 22,
+        fontFamily: 'PlusJakartaSans_800ExtraBold',
         color: primary,
+        fontWeight: '800',
     },
     actionButton: {
         flexDirection: 'row',

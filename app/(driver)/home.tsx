@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
     Animated,
     Dimensions,
+    Image,
     SafeAreaView,
     ScrollView,
     StyleSheet,
@@ -15,12 +15,12 @@ import {
     View,
 } from 'react-native';
 import { FloatingHeader } from '../../components/shared/FloatingHeader';
-import { StatusPill } from '../../components/shared/StatusPill';
 import {
     primary,
     surface,
     text,
-    textSecondary
+    textSecondary,
+    warning
 } from '../../constants/Colors';
 import { theme } from '../../constants/theme';
 
@@ -32,8 +32,10 @@ const availableLoads = [
         route: 'Mumbai → Delhi',
         distance: '1,450 km',
         weight: '8 Tons',
-        earnings: '₹32,500',
-        pickupTime: 'Tomorrow, 10:00 AM',
+        earnings: '₹36,400', // Surcharge included
+        pickupTime: 'Urgent: Pickup in 2 hrs',
+        isUrgent: true,
+        expiresIn: '00:45:00'
     },
     {
         id: '2',
@@ -42,12 +44,24 @@ const availableLoads = [
         weight: '5 Tons',
         earnings: '₹22,000',
         pickupTime: 'Today, 6:00 PM',
+        isUrgent: false,
+    },
+    {
+        id: '3',
+        route: 'Nashik → Surat',
+        distance: '240 km',
+        weight: '3 Tons',
+        earnings: '₹15,000',
+        pickupTime: 'Urgent: Pickup ASAP',
+        isUrgent: true,
+        expiresIn: '00:30:00'
     },
 ];
 
 export default function DriverHome() {
     const router = useRouter();
     const [isOnline, setIsOnline] = useState(false);
+    const [isUrgentEnabled, setIsUrgentEnabled] = useState(false);
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(30)).current;
     const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -87,6 +101,49 @@ export default function DriverHome() {
         }
     }, [isOnline]);
 
+    const renderCurrentTrip = () => (
+        <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => router.push('/(driver)/active-trip')}
+            style={styles.currentTripCard}
+        >
+            <LinearGradient
+                colors={['#1e293b', '#0f172a']}
+                style={styles.currentTripGradient}
+            >
+                <View style={styles.currentTripHeader}>
+                    <View style={styles.liveTag}>
+                        <View style={styles.liveDot} />
+                        <Text style={styles.liveText}>LIVE TRIP</Text>
+                    </View>
+                    <Text style={styles.tripId}>#TRK-8821</Text>
+                </View>
+
+                <View style={styles.tripRouteRow}>
+                    <View style={styles.tripLocation}>
+                        <Text style={styles.tripLabel}>Pickup</Text>
+                        <Text style={styles.tripCity}>Mumbai</Text>
+                    </View>
+                    <View style={styles.tripArrow}>
+                        <Ionicons name="arrow-forward" size={16} color="#94a3b8" />
+                        <View style={styles.tripDottedLine} />
+                    </View>
+                    <View style={styles.tripLocation}>
+                        <Text style={[styles.tripLabel, { textAlign: 'right' }]}>Drop</Text>
+                        <Text style={[styles.tripCity, { textAlign: 'right' }]}>Pune</Text>
+                    </View>
+                </View>
+
+                <View style={styles.tripAction}>
+                    <Text style={styles.tripStatus}>En route to Pickup • 15 mins</Text>
+                    <View style={styles.navButton}>
+                        <Ionicons name="navigate" size={16} color="#fff" />
+                    </View>
+                </View>
+            </LinearGradient>
+        </TouchableOpacity>
+    );
+
     return (
         <View style={styles.container}>
             <LinearGradient
@@ -95,43 +152,43 @@ export default function DriverHome() {
             />
 
             <SafeAreaView style={styles.safeArea}>
-                <FloatingHeader
-                    greeting="Good Morning"
-                    userName="Rajesh Kumar"
-                    onNotificationPress={() => { }}
-                    onProfilePress={() => router.push('/(driver)/profile')}
-                />
+                <View style={styles.headerContainer}>
+                    <FloatingHeader
+                        greeting="Good Morning"
+                        userName="Rajesh Kumar"
+                        onNotificationPress={() => { }}
+                        onProfilePress={() => router.push('/(driver)/profile')}
+                    />
+                </View>
 
                 <ScrollView
                     style={styles.scrollView}
                     contentContainerStyle={styles.content}
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* Status Toggle Card */}
                     <Animated.View
                         style={{
                             opacity: fadeAnim,
                             transform: [{ translateY: slideAnim }],
                         }}
                     >
-                        <LinearGradient
-                            colors={isOnline
-                                ? ['rgba(16, 185, 129, 0.15)', 'rgba(52, 211, 153, 0.05)']
-                                : ['rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.3)']
-                            }
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={styles.toggleCard}
-                        >
-                            <BlurView intensity={20} tint="light" style={styles.toggleBlur}>
-                                <View style={styles.toggleContent}>
-                                    <View style={styles.toggleLeft}>
-                                        <View style={styles.statusContainer}>
+                        {/* 1. Status Toggle */}
+                        <View style={styles.statusSection}>
+                            <LinearGradient
+                                colors={isOnline
+                                    ? ['rgba(16, 185, 129, 0.15)', 'rgba(52, 211, 153, 0.05)']
+                                    : ['rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.3)']
+                                }
+                                style={styles.statusCard}
+                            >
+                                <View style={styles.statusContent}>
+                                    <View style={styles.statusLeft}>
+                                        <View style={styles.statusIndicator}>
                                             <Animated.View
                                                 style={[
-                                                    styles.pulseOuter,
+                                                    styles.pulseRing,
                                                     {
-                                                        backgroundColor: isOnline ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
+                                                        borderColor: isOnline ? '#10B981' : 'transparent',
                                                         transform: [{ scale: pulseAnim }],
                                                     }
                                                 ]}
@@ -142,207 +199,177 @@ export default function DriverHome() {
                                             ]} />
                                         </View>
                                         <View>
-                                            <Text style={styles.toggleTitle}>
+                                            <Text style={styles.statusTitle}>
                                                 {isOnline ? 'You are Online' : 'You are Offline'}
                                             </Text>
-                                            <Text style={styles.toggleSubtitle}>
-                                                {isOnline ? 'Ready to accept loads' : 'Switch on to receive loads'}
+                                            <Text style={styles.statusSubtitle}>
+                                                {isOnline ? 'Receiving new loads' : 'Go online to work'}
                                             </Text>
                                         </View>
                                     </View>
-                                    <Switch
-                                        value={isOnline}
-                                        onValueChange={setIsOnline}
-                                        trackColor={{ false: '#E2E8F0', true: '#10B981' }}
-                                        thumbColor={surface}
-                                        ios_backgroundColor="#E2E8F0"
-                                    />
+                                    <View style={styles.statusRight}>
+                                        <Switch
+                                            value={isOnline}
+                                            onValueChange={setIsOnline}
+                                            trackColor={{ false: '#cbd5e1', true: '#10B981' }}
+                                            thumbColor={'#fff'}
+                                        />
+                                    </View>
                                 </View>
-                            </BlurView>
-                        </LinearGradient>
-                    </Animated.View>
+                            </LinearGradient>
 
-                    {/* Stats Cards - Quick Actions Style */}
-                    <Animated.View
-                        style={{
-                            opacity: fadeAnim,
-                            transform: [{ translateY: slideAnim }],
-                        }}
-                    >
-                        <View style={styles.statsContainer}>
-                            {/* Today's Earnings */}
-                            <TouchableOpacity
-                                style={styles.statCard}
-                                onPress={() => router.push('/(driver)/earnings')}
-                            >
-                                <LinearGradient
-                                    colors={['rgba(16, 185, 129, 0.15)', 'rgba(52, 211, 153, 0.05)']}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 1 }}
-                                    style={styles.statGradientBg}
-                                >
-                                    <BlurView intensity={30} tint="light" style={styles.statBlur}>
-                                        <LinearGradient
-                                            colors={['rgba(16, 185, 129, 0.2)', 'rgba(52, 211, 153, 0.1)']}
-                                            style={styles.statIconBg}
-                                        >
-                                            <Ionicons name="wallet-outline" size={22} color="#10B981" />
-                                        </LinearGradient>
-                                        <Text style={[styles.statValue, { color: '#10B981' }]}>₹8,450</Text>
-                                        <Text style={styles.statLabel}>Today's Earnings</Text>
-                                    </BlurView>
-                                </LinearGradient>
-                            </TouchableOpacity>
-
-                            {/* Active Trips */}
-                            <TouchableOpacity
-                                style={styles.statCard}
-                                onPress={() => router.push('/(driver)/active-trip')}
-                            >
-                                <LinearGradient
-                                    colors={['rgba(59, 130, 246, 0.15)', 'rgba(96, 165, 250, 0.05)']}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 1 }}
-                                    style={styles.statGradientBg}
-                                >
-                                    <BlurView intensity={30} tint="light" style={styles.statBlur}>
-                                        <LinearGradient
-                                            colors={['rgba(59, 130, 246, 0.2)', 'rgba(96, 165, 250, 0.1)']}
-                                            style={styles.statIconBg}
-                                        >
-                                            <Ionicons name="navigate-outline" size={22} color={primary} />
-                                        </LinearGradient>
-                                        <Text style={styles.statValue}>2</Text>
-                                        <Text style={styles.statLabel}>Active Trips</Text>
-                                    </BlurView>
-                                </LinearGradient>
-                            </TouchableOpacity>
-
-                            {/* Rating */}
-                            <View style={styles.statCard}>
+                            {isOnline && (
                                 <LinearGradient
                                     colors={['rgba(245, 158, 11, 0.15)', 'rgba(251, 191, 36, 0.05)']}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 1 }}
-                                    style={styles.statGradientBg}
+                                    style={[styles.statusCard, { marginTop: theme.spacing.sm }]}
                                 >
-                                    <BlurView intensity={30} tint="light" style={styles.statBlur}>
-                                        <LinearGradient
-                                            colors={['rgba(245, 158, 11, 0.2)', 'rgba(251, 191, 36, 0.1)']}
-                                            style={styles.statIconBg}
-                                        >
-                                            <Ionicons name="star-outline" size={22} color="#F59E0B" />
-                                        </LinearGradient>
-                                        <Text style={[styles.statValue, { color: '#F59E0B' }]}>4.8</Text>
-                                        <Text style={styles.statLabel}>Rating</Text>
-                                    </BlurView>
+                                    <View style={styles.statusContent}>
+                                        <View style={styles.statusLeft}>
+                                            <View style={styles.statusIndicator}>
+                                                <Ionicons name="flash" size={24} color={warning} />
+                                            </View>
+                                            <View>
+                                                <Text style={styles.statusTitle}>Urgent Loads</Text>
+                                                <Text style={styles.statusSubtitle}>Enable to receive high-pay urgent requests</Text>
+                                            </View>
+                                        </View>
+                                        <Switch
+                                            value={isUrgentEnabled}
+                                            onValueChange={setIsUrgentEnabled}
+                                            trackColor={{ false: '#cbd5e1', true: warning }}
+                                            thumbColor={'#fff'}
+                                        />
+                                    </View>
                                 </LinearGradient>
+                            )}
+                        </View>
+
+                        {/* 2. Current Trip (Mocked as if active for demo, or hidden) */}
+                        {isOnline && (
+                            renderCurrentTrip()
+                        )}
+
+                        {/* 3. Earnings Summary */}
+                        <View style={styles.earningsSection}>
+                            <View style={styles.sectionHeader}>
+                                <Text style={styles.sectionTitle}>Performance</Text>
+                                <TouchableOpacity onPress={() => router.push('/(driver)/earnings')}>
+                                    <Text style={styles.seeAllText}>More Stats</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            <View style={styles.earningsGrid}>
+                                <TouchableOpacity style={styles.earningsItemNew}>
+                                    <LinearGradient
+                                        colors={['rgba(59, 130, 246, 0.1)', 'rgba(59, 130, 246, 0.05)']}
+                                        style={styles.earningsItemGradient}
+                                    >
+                                        <Ionicons name="wallet-outline" size={20} color={primary} />
+                                        <Text style={styles.earningsValueNew}>₹8,450</Text>
+                                        <Text style={styles.earningsLabelNew}>Today's Earnings</Text>
+                                    </LinearGradient>
+                                </TouchableOpacity>
+
+                                <View style={styles.earningsGridRight}>
+                                    <View style={styles.earningsItemNewSmall}>
+                                        <LinearGradient
+                                            colors={['rgba(16, 185, 129, 0.1)', 'rgba(16, 185, 129, 0.05)']}
+                                            style={styles.earningsItemGradient}
+                                        >
+                                            <Text style={[styles.earningsValueNew, { color: '#10B981' }]}>2</Text>
+                                            <Text style={styles.earningsLabelNew}>Trips</Text>
+                                        </LinearGradient>
+                                    </View>
+                                    <View style={styles.earningsItemNewSmall}>
+                                        <LinearGradient
+                                            colors={['rgba(245, 158, 11, 0.1)', 'rgba(245, 158, 11, 0.05)']}
+                                            style={styles.earningsItemGradient}
+                                        >
+                                            <Text style={[styles.earningsValueNew, { color: warning }]}>5.5h</Text>
+                                            <Text style={styles.earningsLabelNew}>Hours</Text>
+                                        </LinearGradient>
+                                    </View>
+                                </View>
                             </View>
                         </View>
-                    </Animated.View>
 
-                    {/* Available Loads */}
-                    {isOnline && (
-                        <Animated.View
-                            style={{
-                                opacity: fadeAnim,
-                                transform: [{ translateY: slideAnim }],
-                            }}
-                        >
-                            <View style={styles.section}>
+                        {/* 4. Available Loads */}
+                        {isOnline ? (
+                            <View style={styles.loadsSection}>
                                 <View style={styles.sectionHeader}>
-                                    <Text style={styles.sectionTitle}>Available Loads</Text>
+                                    <Text style={styles.sectionTitle}>Available Loads ({availableLoads.length})</Text>
                                     <TouchableOpacity onPress={() => router.push('/(driver)/loads')}>
-                                        <Text style={styles.seeAllText}>See All</Text>
+                                        <Text style={styles.seeAllText}>View All</Text>
                                     </TouchableOpacity>
                                 </View>
 
-                                {availableLoads.map((load, index) => (
-                                    <TouchableOpacity
-                                        key={load.id}
-                                        activeOpacity={0.9}
-                                        onPress={() => router.push(`/(driver)/load-details?id=${load.id}`)}
-                                        style={styles.loadCardWrapper}
-                                    >
-                                        <LinearGradient
-                                            colors={['rgba(59, 130, 246, 0.08)', 'rgba(96, 165, 250, 0.04)']}
-                                            start={{ x: 0, y: 0 }}
-                                            end={{ x: 1, y: 1 }}
-                                            style={styles.loadCard}
+                                {availableLoads
+                                    .filter(load => isUrgentEnabled ? true : !load.isUrgent)
+                                    .sort((a, b) => (b.isUrgent ? 1 : 0) - (a.isUrgent ? 1 : 0))
+                                    .map((load) => (
+                                        <TouchableOpacity
+                                            key={load.id}
+                                            activeOpacity={0.9}
+                                            onPress={() => router.push(`/(driver)/load-details?id=${load.id}`)}
+                                            style={[
+                                                styles.loadCard,
+                                                load.isUrgent && styles.urgentLoadCard
+                                            ]}
                                         >
-                                            <BlurView intensity={35} tint="light" style={styles.loadBlur}>
-                                                <View style={styles.loadHeader}>
-                                                    <Text style={styles.loadRoute}>{load.route}</Text>
-                                                    <StatusPill status="pending" />
+                                            {load.isUrgent && (
+                                                <View style={styles.urgentBanner}>
+                                                    <Ionicons name="flash" size={12} color="#fff" />
+                                                    <Text style={styles.urgentBannerText}>URGENT • HIGH PAY</Text>
+                                                    {load.expiresIn && (
+                                                        <Text style={styles.urgentTimer}>{load.expiresIn}</Text>
+                                                    )}
+                                                </View>
+                                            )}
+
+                                            <View style={styles.loadCardContent}>
+                                                <View style={styles.loadMainRow}>
+                                                    <View style={styles.loadRouteInfo}>
+                                                        <Text style={styles.loadRouteText}>{load.route}</Text>
+                                                        <View style={styles.loadBadges}>
+                                                            <View style={styles.badge}>
+                                                                <Ionicons name="resize-outline" size={12} color={textSecondary} />
+                                                                <Text style={styles.badgeText}>{load.weight}</Text>
+                                                            </View>
+                                                            <View style={styles.badge}>
+                                                                <Ionicons name="map-outline" size={12} color={textSecondary} />
+                                                                <Text style={styles.badgeText}>{load.distance}</Text>
+                                                            </View>
+                                                        </View>
+                                                    </View>
+                                                    <Text style={styles.loadPriceText}>{load.earnings}</Text>
                                                 </View>
 
-                                                <View style={styles.loadDetails}>
-                                                    <View style={styles.loadDetailItem}>
-                                                        <LinearGradient
-                                                            colors={['rgba(59, 130, 246, 0.15)', 'rgba(96, 165, 250, 0.1)']}
-                                                            style={styles.loadDetailIcon}
-                                                        >
-                                                            <Ionicons name="navigate-outline" size={14} color={primary} />
-                                                        </LinearGradient>
-                                                        <Text style={styles.loadDetailText}>{load.distance}</Text>
-                                                    </View>
-                                                    <View style={styles.loadDetailItem}>
-                                                        <LinearGradient
-                                                            colors={['rgba(245, 158, 11, 0.15)', 'rgba(251, 191, 36, 0.1)']}
-                                                            style={styles.loadDetailIcon}
-                                                        >
-                                                            <Ionicons name="cube-outline" size={14} color="#F59E0B" />
-                                                        </LinearGradient>
-                                                        <Text style={styles.loadDetailText}>{load.weight}</Text>
-                                                    </View>
-                                                    <View style={styles.loadDetailItem}>
-                                                        <LinearGradient
-                                                            colors={['rgba(16, 185, 129, 0.15)', 'rgba(52, 211, 153, 0.1)']}
-                                                            style={styles.loadDetailIcon}
-                                                        >
-                                                            <Ionicons name="time-outline" size={14} color="#10B981" />
-                                                        </LinearGradient>
-                                                        <Text style={styles.loadDetailText}>{load.pickupTime}</Text>
-                                                    </View>
+                                                <View style={styles.loadFooterRow}>
+                                                    <Text style={[
+                                                        styles.loadTimeText,
+                                                        load.isUrgent && { color: warning, fontWeight: '600' }
+                                                    ]}>
+                                                        {load.pickupTime}
+                                                    </Text>
+                                                    <Ionicons name="chevron-forward" size={18} color={textSecondary} />
                                                 </View>
-
-                                                <View style={styles.loadFooter}>
-                                                    <Text style={styles.loadPrice}>{load.earnings}</Text>
-                                                    <View style={styles.viewButton}>
-                                                        <Text style={styles.viewButtonText}>View Details</Text>
-                                                        <Ionicons name="arrow-forward" size={14} color={primary} />
-                                                    </View>
-                                                </View>
-                                            </BlurView>
-                                        </LinearGradient>
-                                    </TouchableOpacity>
-                                ))}
+                                            </View>
+                                        </TouchableOpacity>
+                                    ))}
                             </View>
-                        </Animated.View>
-                    )}
-
-                    {/* Offline Message */}
-                    {!isOnline && (
-                        <Animated.View
-                            style={{
-                                opacity: fadeAnim,
-                                transform: [{ translateY: slideAnim }],
-                            }}
-                        >
-                            <View style={styles.offlineMessage}>
-                                <LinearGradient
-                                    colors={['rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.2)']}
-                                    style={styles.offlineIcon}
-                                >
-                                    <Ionicons name="cloud-offline-outline" size={48} color={textSecondary} />
-                                </LinearGradient>
-                                <Text style={styles.offlineTitle}>You are currently offline</Text>
-                                <Text style={styles.offlineText}>
-                                    Go online to start receiving new load offers and track your earnings.
+                        ) : (
+                            <View style={styles.offlineContainer}>
+                                <Image
+                                    source={{ uri: 'https://cdn-icons-png.flaticon.com/512/7486/7486747.png' }}
+                                    style={styles.offlineImage}
+                                />
+                                <Text style={styles.offlineTitle}>You are Offline</Text>
+                                <Text style={styles.offlineSubtitle}>
+                                    Go online to see available loads and start earning.
                                 </Text>
                             </View>
-                        </Animated.View>
-                    )}
+                        )}
+                    </Animated.View>
                 </ScrollView>
             </SafeAreaView>
         </View>
@@ -356,41 +383,48 @@ const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
     },
+    headerContainer: {
+        paddingHorizontal: theme.spacing.md,
+        paddingTop: theme.spacing.sm,
+        zIndex: 10,
+    },
     scrollView: {
         flex: 1,
+        marginTop: theme.spacing.sm,
     },
     content: {
-        paddingBottom: 120,
+        paddingBottom: 100,
     },
-    // Toggle Card
-    toggleCard: {
-        marginHorizontal: theme.spacing.lg,
-        borderRadius: 20,
-        marginBottom: theme.spacing.md,
-        marginTop: theme.spacing.md,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.3)',
-        ...theme.shadows.medium,
-        elevation: 5,
+    // Status Toggle
+    statusSection: {
+        paddingHorizontal: theme.spacing.lg,
+        marginBottom: theme.spacing.lg,
+        marginTop: theme.spacing.xs,
     },
-    toggleBlur: {
+    statusCard: {
+        borderRadius: 16,
         padding: theme.spacing.md,
-        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.5)',
     },
-    toggleContent: {
+    statusContent: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
     },
-    toggleLeft: {
+    statusRight: {
         flexDirection: 'row',
         alignItems: 'center',
-        flex: 1,
+        gap: theme.spacing.sm,
+    },
+    statusLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
         gap: theme.spacing.md,
     },
-    statusContainer: {
-        width: 36,
-        height: 36,
+    statusIndicator: {
+        width: 40,
+        height: 40,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -399,207 +433,298 @@ const styles = StyleSheet.create({
         height: 12,
         borderRadius: 6,
     },
-    pulseOuter: {
+    pulseRing: {
         position: 'absolute',
-        width: 36,
-        height: 36,
-        borderRadius: 18,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        borderWidth: 2,
     },
-    toggleTitle: {
+    statusTitle: {
         fontSize: 16,
-        color: text,
         fontWeight: '700',
-        marginBottom: 2,
+        color: text,
         fontFamily: 'PlusJakartaSans_700Bold',
     },
-    toggleSubtitle: {
-        fontSize: 12,
+    statusSubtitle: {
+        fontSize: 13,
         color: textSecondary,
-        fontFamily: 'PlusJakartaSans_500Medium',
+        fontFamily: 'Inter_400Regular',
     },
-    // Stats Styles
-    statsContainer: {
-        flexDirection: 'row',
-        paddingHorizontal: theme.spacing.lg,
-        gap: theme.spacing.md,
+    // Current Trip
+    currentTripCard: {
+        marginHorizontal: theme.spacing.lg,
         marginBottom: theme.spacing.xl,
-    },
-    statCard: {
-        flex: 1,
-        borderRadius: 18,
-        backgroundColor: surface,
+        borderRadius: 20,
+        overflow: 'hidden',
         ...theme.shadows.medium,
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
     },
-    statGradientBg: {
-        borderRadius: 18,
+    currentTripGradient: {
+        padding: theme.spacing.lg,
     },
-    statBlur: {
-        padding: theme.spacing.md,
+    currentTripHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        borderRadius: 18,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.4)',
+        marginBottom: theme.spacing.lg,
     },
-    statIconBg: {
-        width: 44,
-        height: 44,
-        borderRadius: 14,
+    liveTag: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 100,
+        gap: 6,
+    },
+    liveDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#4ade80',
+    },
+    liveText: {
+        color: '#4ade80',
+        fontSize: 10,
+        fontWeight: '700',
+        letterSpacing: 0.5,
+    },
+    tripId: {
+        color: '#94a3b8',
+        fontSize: 12,
+        fontFamily: 'Inter_500Medium',
+    },
+    tripRouteRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: theme.spacing.lg,
+    },
+    tripLocation: {
+        flex: 1,
+    },
+    tripLabel: {
+        color: '#94a3b8',
+        fontSize: 11,
+        marginBottom: 2,
+        textTransform: 'uppercase',
+    },
+    tripCity: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: '700',
+        fontFamily: 'PlusJakartaSans_700Bold',
+    },
+    tripArrow: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    tripDottedLine: {
+        height: 1,
+        width: '100%',
+        backgroundColor: '#475569',
+        position: 'absolute',
+        zIndex: -1,
+        top: '50%',
+    },
+    tripAction: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        padding: theme.spacing.md,
+        borderRadius: 12,
+    },
+    tripStatus: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    navButton: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: primary,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: theme.spacing.sm,
     },
-    statValue: {
-        fontSize: 16,
-        color: text,
-        fontWeight: '700',
-        marginBottom: 2,
-        fontFamily: 'PlusJakartaSans_700Bold',
-        textAlign: 'center',
-    },
-    statLabel: {
-        fontSize: 10,
-        color: textSecondary,
-        fontWeight: '500',
-        textAlign: 'center',
-    },
-    // Available Loads Styles
-    section: {
+    // Earnings Section
+    earningsSection: {
+        paddingHorizontal: theme.spacing.lg,
         marginBottom: theme.spacing.xl,
     },
     sectionHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: theme.spacing.lg,
         marginBottom: theme.spacing.md,
     },
     sectionTitle: {
         fontSize: 16,
+        fontWeight: '700',
         color: text,
-        fontWeight: '600',
-        fontFamily: 'PlusJakartaSans_600SemiBold',
+        fontFamily: 'PlusJakartaSans_700Bold',
     },
     seeAllText: {
-        fontSize: 14,
+        fontSize: 13,
         color: primary,
         fontWeight: '600',
     },
-    loadCardWrapper: {
-        marginHorizontal: theme.spacing.lg,
-        marginBottom: theme.spacing.md,
+    // Earnings Grid Styles
+    earningsGrid: {
+        flexDirection: 'row',
+        gap: theme.spacing.md,
+    },
+    earningsGridRight: {
+        flex: 1,
+        gap: theme.spacing.md,
+    },
+    earningsItemNew: {
+        flex: 1.2,
+        borderRadius: 20,
+        overflow: 'hidden',
+        backgroundColor: '#fff',
+        ...theme.shadows.light,
+    },
+    earningsItemNewSmall: {
+        flex: 1,
+        borderRadius: 16,
+        overflow: 'hidden',
+        backgroundColor: '#fff',
+        ...theme.shadows.light,
+    },
+    earningsItemGradient: {
+        padding: theme.spacing.lg,
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100%',
+    },
+    earningsValueNew: {
+        fontSize: 24,
+        fontWeight: '800',
+        color: text,
+        fontFamily: 'PlusJakartaSans_800ExtraBold',
+        marginVertical: 4,
+    },
+    earningsLabelNew: {
+        fontSize: 12,
+        color: textSecondary,
+        fontFamily: 'Inter_500Medium',
+    },
+    // Loads Section
+    loadsSection: {
+        paddingBottom: theme.spacing.xl,
+        paddingHorizontal: theme.spacing.lg,
     },
     loadCard: {
-        borderRadius: 20,
+        marginBottom: theme.spacing.md,
         backgroundColor: surface,
-        ...theme.shadows.medium,
-        elevation: 5,
-        shadowColor: 'rgba(59, 130, 246, 0.2)',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.12,
-        shadowRadius: 10,
-        borderWidth: 1,
-        borderColor: 'rgba(59, 130, 246, 0.15)',
+        borderRadius: 16,
+        ...theme.shadows.light,
+        overflow: 'hidden',
     },
-    loadBlur: {
+    urgentLoadCard: {
+        borderWidth: 1,
+        borderColor: warning,
+        backgroundColor: '#fffdf5',
+    },
+    urgentBanner: {
+        backgroundColor: warning,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: theme.spacing.md,
+        paddingVertical: 6,
+        gap: 6,
+    },
+    urgentBannerText: {
+        color: '#fff',
+        fontSize: 11,
+        fontWeight: '700',
+        flex: 1,
+    },
+    urgentTimer: {
+        color: '#fff',
+        fontSize: 11,
+        fontWeight: '600',
+    },
+    loadCardContent: {
         padding: theme.spacing.md,
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.3)',
     },
-    loadHeader: {
+    loadMainRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: theme.spacing.sm,
     },
-    loadRoute: {
+    loadRouteInfo: {
+        flex: 1,
+    },
+    loadRouteText: {
         fontSize: 16,
-        color: text,
         fontWeight: '700',
+        color: text,
+        marginBottom: 6,
         fontFamily: 'PlusJakartaSans_700Bold',
     },
-    loadDetails: {
+    loadBadges: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: theme.spacing.sm,
-        marginBottom: theme.spacing.md,
+        gap: 8,
     },
-    loadDetailItem: {
+    badge: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: theme.spacing.xs,
+        gap: 4,
+        backgroundColor: '#f1f5f9',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 6,
     },
-    loadDetailIcon: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    loadDetailText: {
-        fontSize: 12,
+    badgeText: {
+        fontSize: 11,
         color: textSecondary,
         fontWeight: '500',
-        fontFamily: 'PlusJakartaSans_500Medium',
     },
-    loadFooter: {
+    loadPriceText: {
+        fontSize: 20,
+        fontWeight: '800',
+        color: primary,
+        fontFamily: 'PlusJakartaSans_800ExtraBold',
+    },
+    loadFooterRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingTop: theme.spacing.sm,
         borderTopWidth: 1,
-        borderTopColor: 'rgba(226, 232, 240, 0.3)',
+        borderTopColor: '#f1f5f9',
     },
-    loadPrice: {
-        fontSize: 18,
-        color: primary,
-        fontWeight: '700',
-        fontFamily: 'PlusJakartaSans_700Bold',
-    },
-    viewButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-    },
-    viewButtonText: {
+    loadTimeText: {
         fontSize: 13,
-        color: primary,
-        fontWeight: '600',
-        fontFamily: 'PlusJakartaSans_600SemiBold',
+        color: textSecondary,
     },
-    // Offline Message
-    offlineMessage: {
+    // Offline State
+    offlineContainer: {
         alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: theme.spacing.xxxl,
-        paddingHorizontal: theme.spacing.xxl,
+        marginTop: 40,
+        paddingHorizontal: 40,
     },
-    offlineIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
+    offlineImage: {
+        width: 120,
+        height: 120,
         marginBottom: theme.spacing.lg,
+        opacity: 0.5,
     },
     offlineTitle: {
-        fontSize: 18,
+        fontSize: 20,
+        fontWeight: '700',
         color: text,
-        fontWeight: '600',
         marginBottom: theme.spacing.xs,
-        textAlign: 'center',
-        fontFamily: 'PlusJakartaSans_600SemiBold',
     },
-    offlineText: {
+    offlineSubtitle: {
         fontSize: 14,
         color: textSecondary,
         textAlign: 'center',
-        lineHeight: 20,
-        fontFamily: 'PlusJakartaSans_400Regular',
+        lineHeight: 22,
     },
 });

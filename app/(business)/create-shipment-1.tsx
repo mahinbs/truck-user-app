@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     footer: {
         paddingHorizontal: theme.spacing.base,
         paddingVertical: theme.spacing.base,
-        paddingBottom: theme.spacing.xxxl + theme.spacing.base, // Extra padding for bottom nav
+        paddingBottom: 120, // Increased padding to clear bottom nav
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
         ...theme.shadows.medium,
     },
