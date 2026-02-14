@@ -151,9 +151,9 @@ const styles = StyleSheet.create({
     },
     pillIcon: {
         backgroundColor: '#6366F1',
-        width: 36,
-        height: 24,
-        borderRadius: 12,
+        width: width < 380 ? 32 : 36,
+        height: width < 380 ? 32 : 36,
+        borderRadius: width < 380 ? 16 : 18,
         justifyContent: 'center',
         alignItems: 'center',
         marginHorizontal: 8,

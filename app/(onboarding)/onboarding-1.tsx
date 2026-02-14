@@ -177,9 +177,9 @@ const styles = StyleSheet.create({
     },
     pillIcon: {
         backgroundColor: '#6366F1',
-        width: width < 380 ? 32 : 36, // Responsive icon size
-        height: 24,
-        borderRadius: 12,
+        width: width < 380 ? 32 : 36, // Responsive width
+        height: width < 380 ? 32 : 36, // Responsive height (equal to width)
+        borderRadius: width < 380 ? 16 : 18, // Half of size for perfect circle
         justifyContent: 'center',
         alignItems: 'center',
         marginHorizontal: 4,
