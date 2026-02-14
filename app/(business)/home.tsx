@@ -31,7 +31,7 @@ const CAROUSEL_DATA = [
         id: '1',
         title: 'Book a Truck',
         subtitle: 'Reliable transport for your goods',
-        image: require('../../assets/truck-image/trucks-driving-highway_37416-1134.jpg'),
+        image: require('../../assets/images/truckx-crausal1.png'),
         action: () => { },
         buttonText: 'Book Now'
     },
@@ -39,7 +39,7 @@ const CAROUSEL_DATA = [
         id: '2',
         title: 'Track Shipments',
         subtitle: 'Real-time location updates',
-        image: require('../../assets/truck-image/semi-truck-carrying-blue-shipping-container_23-2151998697.jpg'),
+        image: require('../../assets/images/truckx-crausal2.png'),
         action: () => { },
         buttonText: 'Track Now'
     },
@@ -47,7 +47,7 @@ const CAROUSEL_DATA = [
         id: '3',
         title: 'Manage Fleet',
         subtitle: 'Optimize your logistics',
-        image: require('../../assets/truck-image/truck-transport-container-road-port_948233-11928.jpg'),
+        image: require('../../assets/images/truckx-crausal3.png'),
         action: () => { },
         buttonText: 'View Fleet'
     }
@@ -160,16 +160,16 @@ export default function BusinessHome() {
 
                             <TouchableOpacity
                                 style={styles.quickActionCard}
-                                onPress={() => router.push('/(business)/wallet')}
+                                onPress={handleBookTruck}
                             >
                                 <BlurView intensity={20} tint="light" style={styles.glassCard}>
                                     <LinearGradient
                                         colors={['rgba(16, 185, 129, 0.15)', 'rgba(52, 211, 153, 0.1)']}
                                         style={styles.quickActionIconContainer}
                                     >
-                                        <Ionicons name="wallet" size={24} color="#10B981" />
+                                        <Ionicons name="bus-outline" size={24} color="#10B981" />
                                     </LinearGradient>
-                                    <Text style={styles.quickActionText}>Wallet</Text>
+                                    <Text style={styles.quickActionText}>Book Now</Text>
                                 </BlurView>
                             </TouchableOpacity>
 

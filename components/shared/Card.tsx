@@ -1,13 +1,13 @@
 import { BlurView } from 'expo-blur';
 import React, { ReactNode } from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { border, surface } from '../../constants/Colors';
 import { theme } from '../../constants/theme';
 
 interface CardProps {
     children: ReactNode;
     variant?: 'default' | 'glass' | 'outlined';
-    style?: ViewStyle;
+    style?: StyleProp<ViewStyle>;
     padding?: number;
 }
 

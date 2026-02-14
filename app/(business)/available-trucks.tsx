@@ -1,60 +1,56 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useMemo, useState } from 'react';
 import {
     SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
 } from 'react-native';
-import { BottomSheet } from '../../components/shared/BottomSheet';
 import { Button } from '../../components/shared/Button';
 import { Card } from '../../components/shared/Card';
-import { background, primary, surface, text, textSecondary } from '../../constants/Colors';
+import { background, primary, surface, text, textSecondary, warning } from '../../constants/Colors';
 import { theme } from '../../constants/theme';
 
-const mockDrivers = [
-    {
-        id: '1',
-        name: 'Rajesh Kumar',
-        truckType: 'Container Truck',
-        rating: 4.8,
-        trips: 245,
-        price: '₹24,500',
-    },
-    {
-        id: '2',
-        name: 'Amit Singh',
-        truckType: 'Container Truck',
-        rating: 4.9,
-        trips: 312,
-        price: '₹23,800',
-    },
-    {
-        id: '3',
-        name: 'Suresh Patel',
-        truckType: 'Container Truck',
-        rating: 4.7,
-        trips: 189,
-        price: '₹25,200',
-    },
-];
+import { MOCK_DRIVERS } from '../../constants/data';
 
 export default function AvailableTrucks() {
     const router = useRouter();
+    const { urgent } = useLocalSearchParams();
+    const isUrgent = urgent === 'true';
+
     const [selectedDriver, setSelectedDriver] = useState<any>(null);
     const [bottomSheetVisible, setBottomSheetVisible] = useState(false);
 
-    const handleSelectDriver = (driver: any) => {
-        setSelectedDriver(driver);
-        setBottomSheetVisible(true);
-    };
+    // Calculate prices with surcharge if urgent
+    const drivers = useMemo(() => {
+        return MOCK_DRIVERS
+            .filter(driver => isUrgent ? true : !driver.urgentEnabled)
+            .map(driver => {
+                const basePrice = parseInt(driver.price.replace(/[^0-9]/g, ''));
+                const surcharge = isUrgent ? Math.round(basePrice * 0.12) : 0;
+                const totalPrice = basePrice + surcharge;
 
-    const handleConfirmSelection = () => {
-        setBottomSheetVisible(false);
-        router.push('/(business)/booking-confirmation');
+                return {
+                    ...driver,
+                    basePrice, // Original price (string parsed)
+                    surcharge,
+                    totalPriceFormatted: `₹${totalPrice.toLocaleString('en-IN')}`,
+                    originalPrice: driver.price
+                };
+            });
+    }, [isUrgent]);
+
+    const handleSelectDriver = (driver: any) => {
+        router.push({
+            pathname: '/(business)/booking-confirmation',
+            params: {
+                driverId: driver.id,
+                isUrgent: isUrgent.toString()
+            }
+        });
     };
 
     return (
@@ -63,7 +59,9 @@ export default function AvailableTrucks() {
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color={text} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Available Trucks</Text>
+                <Text style={styles.headerTitle}>
+                    {isUrgent ? 'Urgent Trucks' : 'Available Trucks'}
+                </Text>
                 <View style={styles.placeholder} />
             </View>
 
@@ -73,88 +71,66 @@ export default function AvailableTrucks() {
                 showsVerticalScrollIndicator={false}
             >
                 <Text style={styles.resultsText}>
-                    {mockDrivers.length} trucks available for your route
+                    {drivers.length} trucks available for your route
                 </Text>
 
-                {mockDrivers.map((driver) => (
-                    <Card key={driver.id} style={styles.driverCard}>
+                {drivers.map((driver: any) => (
+                    <Card
+                        key={driver.id}
+                        style={[
+                            styles.driverCard,
+                            isUrgent && styles.urgentDriverCard
+                        ]}
+                    >
                         <View style={styles.driverHeader}>
-                            <View style={styles.driverAvatar}>
-                                <Ionicons name="person" size={32} color={primary} />
+                            <View style={styles.driverAvatarContainer}>
+                                <View style={styles.driverAvatar}>
+                                    <Ionicons name="person" size={28} color={textSecondary} />
+                                </View>
+                                <View style={styles.verifiedBadge}>
+                                    <Ionicons name="checkmark" size={12} color="#FFFFFF" />
+                                </View>
                             </View>
                             <View style={styles.driverInfo}>
-                                <Text style={styles.driverName}>{driver.name}</Text>
+                                <View style={styles.driverNameRow}>
+                                    <Text style={styles.driverName}>{driver.name}</Text>
+                                    <Text style={styles.price}>{driver.totalPriceFormatted}</Text>
+                                </View>
                                 <Text style={styles.truckType}>{driver.truckType}</Text>
                                 <View style={styles.ratingContainer}>
-                                    <Ionicons name="star" size={14} color="#F59E0B" />
-                                    <Text style={styles.rating}>{driver.rating}</Text>
-                                    <Text style={styles.trips}>• {driver.trips} trips</Text>
+                                    <View style={styles.ratingBadge}>
+                                        <Ionicons name="star" size={10} color="#D97706" />
+                                        <Text style={styles.rating}>{driver.rating}</Text>
+                                    </View>
+                                    <Text style={styles.trips}>{driver.trips} trips completed</Text>
                                 </View>
                             </View>
                         </View>
 
-                        <View style={styles.driverFooter}>
-                            <View>
-                                <Text style={styles.priceLabel}>Estimated Price</Text>
-                                <Text style={styles.price}>{driver.price}</Text>
+                        <View style={[styles.driverFooter, isUrgent && styles.urgentFooter]}>
+                            <View style={styles.priceContainer}>
+                                {isUrgent ? (
+                                    <View style={styles.urgentTag}>
+                                        <Ionicons name="flash" size={10} color="#FFFFFF" />
+                                        <Text style={styles.urgentTagText}>Urgent Priority</Text>
+                                    </View>
+                                ) : (
+                                    <Text style={styles.priceLabel}>Estimated Price</Text>
+                                )}
+                                <Text style={[styles.price, { fontSize: 16 }]}>
+                                    {isUrgent ? 'Premium Driver' : 'Standard Rate'}
+                                </Text>
                             </View>
                             <Button
-                                title="Select"
+                                title="Select Truck"
                                 onPress={() => handleSelectDriver(driver)}
-                                variant="primary"
+                                variant={isUrgent ? 'warning' : 'primary'}
                                 style={styles.selectButton}
                             />
                         </View>
                     </Card>
                 ))}
             </ScrollView>
-
-            <BottomSheet
-                visible={bottomSheetVisible}
-                onClose={() => setBottomSheetVisible(false)}
-                height={400}
-            >
-                {selectedDriver && (
-                    <View style={styles.bottomSheetContent}>
-                        <Text style={styles.sheetTitle}>Confirm Selection</Text>
-
-                        <View style={styles.driverSummary}>
-                            <View style={styles.driverAvatar}>
-                                <Ionicons name="person" size={32} color={primary} />
-                            </View>
-                            <View>
-                                <Text style={styles.driverName}>{selectedDriver.name}</Text>
-                                <Text style={styles.truckType}>{selectedDriver.truckType}</Text>
-                            </View>
-                        </View>
-
-                        <View style={styles.priceSummary}>
-                            <View style={styles.priceRow}>
-                                <Text style={styles.priceRowLabel}>Base Fare</Text>
-                                <Text style={styles.priceRowValue}>₹22,000</Text>
-                            </View>
-                            <View style={styles.priceRow}>
-                                <Text style={styles.priceRowLabel}>Distance Charge</Text>
-                                <Text style={styles.priceRowValue}>₹2,000</Text>
-                            </View>
-                            <View style={styles.priceRow}>
-                                <Text style={styles.priceRowLabel}>GST (18%)</Text>
-                                <Text style={styles.priceRowValue}>₹500</Text>
-                            </View>
-                            <View style={[styles.priceRow, styles.totalRow]}>
-                                <Text style={styles.totalLabel}>Total</Text>
-                                <Text style={styles.totalValue}>{selectedDriver.price}</Text>
-                            </View>
-                        </View>
-
-                        <Button
-                            title="Proceed to Booking"
-                            onPress={handleConfirmSelection}
-                            fullWidth
-                        />
-                    </View>
-                )}
-            </BottomSheet>
         </SafeAreaView>
     );
 }
@@ -200,87 +176,184 @@ const styles = StyleSheet.create({
         marginBottom: theme.spacing.base,
     },
     driverCard: {
-        padding: theme.spacing.base,
+        padding: 0,
         marginBottom: theme.spacing.md,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        backgroundColor: '#FFFFFF',
+    },
+    urgentDriverCard: {
+        borderColor: warning,
+        backgroundColor: '#FFFBEB',
     },
     driverHeader: {
         flexDirection: 'row',
-        marginBottom: theme.spacing.md,
+        padding: theme.spacing.base,
+    },
+    driverAvatarContainer: {
+        position: 'relative',
+        marginRight: theme.spacing.md,
     },
     driverAvatar: {
         width: 60,
         height: 60,
         borderRadius: 30,
-        backgroundColor: '#EFF6FF',
+        backgroundColor: '#F1F5F9',
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: theme.spacing.md,
+    },
+    verifiedBadge: {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+        backgroundColor: '#10B981',
+        borderRadius: 10,
+        width: 20,
+        height: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 2,
+        borderColor: '#FFFFFF',
     },
     driverInfo: {
         flex: 1,
+        justifyContent: 'center',
+    },
+    driverNameRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 4,
     },
     driverName: {
-        ...theme.typography.h3,
+        fontSize: 16,
+        fontWeight: '700',
         color: text,
-        marginBottom: 2,
+        fontFamily: 'PlusJakartaSans_700Bold',
     },
     truckType: {
-        ...theme.typography.caption,
+        fontSize: 13,
         color: textSecondary,
-        marginBottom: theme.spacing.xs,
+        marginBottom: 8,
+        fontFamily: 'Inter_500Medium',
     },
     ratingContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        gap: 6,
+    },
+    ratingBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FEF3C7',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
         gap: 4,
     },
     rating: {
-        ...theme.typography.caption,
-        color: text,
-        fontWeight: '600',
+        fontSize: 12,
+        fontWeight: '700',
+        color: '#D97706',
     },
     trips: {
-        ...theme.typography.caption,
+        fontSize: 12,
         color: textSecondary,
+        fontFamily: 'Inter_500Medium',
     },
     driverFooter: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingTop: theme.spacing.md,
+        padding: theme.spacing.base,
+        backgroundColor: '#F8FAFC',
         borderTopWidth: 1,
         borderTopColor: '#E2E8F0',
     },
-    priceLabel: {
-        ...theme.typography.caption,
-        color: textSecondary,
-        marginBottom: 2,
+    urgentFooter: {
+        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+        borderTopColor: 'rgba(245, 158, 11, 0.2)',
     },
-    price: {
-        ...theme.typography.h3,
-        color: primary,
-    },
-    selectButton: {
-        paddingHorizontal: theme.spacing.lg,
-    },
-    bottomSheetContent: {
+    priceContainer: {
         flex: 1,
     },
-    sheetTitle: {
-        ...theme.typography.h2,
-        color: text,
+    priceLabel: {
+        fontSize: 11,
+        color: textSecondary,
+        marginBottom: 2,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+        fontWeight: '600',
+    },
+    price: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: primary,
+        fontFamily: 'PlusJakartaSans_700Bold',
+    },
+    selectButton: {
+        paddingHorizontal: theme.spacing.xl,
+        height: 44,
+    },
+    urgentTag: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        backgroundColor: warning,
+        alignSelf: 'flex-start',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 4,
+        marginBottom: 6,
+    },
+    urgentTagText: {
+        fontSize: 10,
+        color: '#FFFFFF',
+        fontWeight: '700',
+        textTransform: 'uppercase',
+    },
+    // Bottom Sheet Styles
+    bottomSheetContent: {
+        flex: 1,
+        paddingHorizontal: theme.spacing.base,
+    },
+    sheetHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
         marginBottom: theme.spacing.lg,
+    },
+    sheetTitle: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: text,
+        fontFamily: 'PlusJakartaSans_700Bold',
     },
     driverSummary: {
         flexDirection: 'row',
         alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        padding: theme.spacing.base,
+        borderRadius: theme.borderRadius.base,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
         marginBottom: theme.spacing.lg,
+    },
+    summaryAvatar: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: '#F1F5F9',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: theme.spacing.md,
     },
     priceSummary: {
         backgroundColor: '#F8FAFC',
         borderRadius: theme.borderRadius.base,
-        padding: theme.spacing.base,
-        marginBottom: theme.spacing.lg,
+        padding: theme.spacing.lg,
+        marginBottom: theme.spacing.xl,
     },
     priceRow: {
         flexDirection: 'row',
@@ -288,25 +361,36 @@ const styles = StyleSheet.create({
         marginBottom: theme.spacing.sm,
     },
     priceRowLabel: {
-        ...theme.typography.body,
+        fontSize: 14,
         color: textSecondary,
+        fontFamily: 'Inter_500Medium',
     },
     priceRowValue: {
-        ...theme.typography.bodyMedium,
+        fontSize: 14,
         color: text,
+        fontWeight: '600',
+        fontFamily: 'Inter_600SemiBold',
+    },
+    surchargeRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
     },
     totalRow: {
-        paddingTop: theme.spacing.sm,
+        marginTop: theme.spacing.sm,
+        paddingTop: theme.spacing.md,
         borderTopWidth: 1,
         borderTopColor: '#E2E8F0',
         marginBottom: 0,
     },
     totalLabel: {
-        ...theme.typography.h3,
+        fontSize: 16,
+        fontWeight: '700',
         color: text,
     },
     totalValue: {
-        ...theme.typography.h3,
+        fontSize: 20,
+        fontWeight: '700',
         color: primary,
     },
 });

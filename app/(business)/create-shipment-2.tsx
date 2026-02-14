@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     footer: {
         paddingHorizontal: theme.spacing.base,
         paddingTop: theme.spacing.base,
-        paddingBottom: 110, // Extra padding to prevent overlap with bottom nav
+        paddingBottom: 120, // Increased padding to clear bottom nav
         backgroundColor: '#FFFFFF',
         ...theme.shadows.medium,
     },

@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
         padding: theme.spacing.lg,
     },
     textContainer: {
-        gap: 4,
+        gap: 2,
     },
     title: {
         fontSize: 24,
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: 'rgba(255,255,255,0.9)',
         fontFamily: 'PlusJakartaSans_500Medium',
-        marginBottom: theme.spacing.sm,
+        marginBottom: theme.spacing.xs,
     },
     button: {
         backgroundColor: Colors.light.primary,

@@ -37,6 +37,10 @@ export default function Profile() {
         ]).start();
     }, []);
 
+    const handleLogout = () => {
+        router.replace('/');
+    };
+
     const MenuItem = ({ icon, label, color = Colors.light.primary, showDivider = true, onPress }: any) => (
         <>
             <TouchableOpacity style={styles.menuItem} onPress={onPress}>
@@ -149,7 +153,7 @@ export default function Profile() {
                         </View>
 
                         {/* Logout */}
-                        <TouchableOpacity style={styles.logoutButton}>
+                        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
                             <Ionicons name="log-out-outline" size={20} color="#EF4444" />
                             <Text style={styles.logoutText}>Log Out</Text>
                         </TouchableOpacity>

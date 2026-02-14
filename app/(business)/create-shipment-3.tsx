@@ -1,33 +1,44 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+    Dimensions,
     SafeAreaView,
     ScrollView,
     StyleSheet,
+    Switch,
     Text,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 import { Button } from '../../components/shared/Button';
 import { Card } from '../../components/shared/Card';
-import { background, primary, primaryLighter, text, textSecondary } from '../../constants/Colors';
+import { background, primary, primaryLighter, text, textSecondary, warning } from '../../constants/Colors';
 import { theme } from '../../constants/theme';
 
 const truckTypes = [
-    { id: '1', name: 'Mini Truck', capacity: '1-2 Tons', icon: 'car' },
-    { id: '2', name: 'Container', capacity: '5-10 Tons', icon: 'cube' },
-    { id: '3', name: 'Trailer', capacity: '15-20 Tons', icon: 'bus' },
-    { id: '4', name: 'Heavy Duty', capacity: '20+ Tons', icon: 'train' },
+    { id: '1', name: 'Mini Truck', capacity: '1-2 Tons', icon: 'van-utility' },
+    { id: '2', name: 'Container', capacity: '5-10 Tons', icon: 'truck' },
+    { id: '3', name: 'Trailer', capacity: '15-20 Tons', icon: 'truck-trailer' },
+    { id: '4', name: 'Heavy Duty', capacity: '20+ Tons', icon: 'truck-flatbed' },
 ];
+
+const { width } = Dimensions.get('window');
+const SPACING = theme.spacing.base; // 16
+const GAP = theme.spacing.md; // 12 or 16
+const ITEM_WIDTH = (width - (SPACING * 2) - GAP) / 2;
 
 export default function CreateShipmentStep3() {
     const router = useRouter();
     const [selectedTruck, setSelectedTruck] = useState('');
     const [hasInsurance, setHasInsurance] = useState(false);
+    const [isUrgent, setIsUrgent] = useState(false);
 
     const handleFindTrucks = () => {
-        router.push('/(business)/available-trucks');
+        router.push({
+            pathname: '/(business)/available-trucks',
+            params: { urgent: isUrgent ? 'true' : 'false' }
+        });
     };
 
     return (
@@ -61,12 +72,14 @@ export default function CreateShipmentStep3() {
                             key={truck.id}
                             onPress={() => setSelectedTruck(truck.id)}
                             activeOpacity={0.7}
+                            style={{ width: ITEM_WIDTH }}
                         >
                             <Card
                                 style={[
                                     styles.truckCard,
                                     selectedTruck === truck.id && styles.truckCardSelected,
                                 ]}
+                                padding={theme.spacing.sm}
                             >
                                 <View
                                     style={[
@@ -74,7 +87,7 @@ export default function CreateShipmentStep3() {
                                         selectedTruck === truck.id && styles.truckIconSelected,
                                     ]}
                                 >
-                                    <Ionicons
+                                    <MaterialCommunityIcons
                                         name={truck.icon as any}
                                         size={32}
                                         color={selectedTruck === truck.id ? primary : text}
@@ -86,6 +99,53 @@ export default function CreateShipmentStep3() {
                         </TouchableOpacity>
                     ))}
                 </View>
+
+                {/* Priority Options - Urgent Load */}
+                <Card style={[styles.optionsCard, isUrgent ? styles.urgentCard : undefined]}>
+                    <View style={styles.urgentHeader}>
+                        <View style={styles.urgentTitleRow}>
+                            <Ionicons name="flash" size={20} color={isUrgent ? warning : textSecondary} />
+                            <Text style={styles.optionsSectionTitle}>Priority Options</Text>
+                        </View>
+                        {isUrgent && (
+                            <View style={styles.urgentBadge}>
+                                <Text style={styles.urgentBadgeText}>URGENT</Text>
+                            </View>
+                        )}
+                    </View>
+
+                    <View style={styles.option}>
+                        <View style={styles.optionLeft}>
+                            <View style={styles.optionText}>
+                                <Text style={styles.optionTitle}>Mark as Urgent Load</Text>
+                                <Text style={styles.optionSubtitle}>Faster matching, higher driver payout</Text>
+
+                                {isUrgent && (
+                                    <View style={styles.urgentBenefits}>
+                                        <View style={styles.benefitItem}>
+                                            <Ionicons name="checkmark-circle" size={12} color={warning} />
+                                            <Text style={styles.benefitText}>Priority notification to drivers</Text>
+                                        </View>
+                                        <View style={styles.benefitItem}>
+                                            <Ionicons name="checkmark-circle" size={12} color={warning} />
+                                            <Text style={styles.benefitText}>Top placement in driver app</Text>
+                                        </View>
+                                        <View style={styles.benefitItem}>
+                                            <Ionicons name="trending-up" size={12} color={warning} />
+                                            <Text style={styles.benefitText}>~12% Surcharge applied</Text>
+                                        </View>
+                                    </View>
+                                )}
+                            </View>
+                        </View>
+                        <Switch
+                            value={isUrgent}
+                            onValueChange={setIsUrgent}
+                            trackColor={{ false: '#E2E8F0', true: warning }}
+                            thumbColor={'#FFFFFF'}
+                        />
+                    </View>
+                </Card>
 
                 <Card style={styles.optionsCard}>
                     <Text style={styles.optionsSectionTitle}>Additional Options</Text>
@@ -206,15 +266,18 @@ const styles = StyleSheet.create({
         marginBottom: theme.spacing.lg,
     },
     truckCard: {
-        width: '48%',
-        padding: theme.spacing.base,
+        width: '100%', // Controlled by parent
+        padding: theme.spacing.md,
         alignItems: 'center',
-        borderWidth: 2,
-        borderColor: 'transparent',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        borderRadius: theme.borderRadius.md,
+        backgroundColor: '#FFFFFF',
     },
     truckCardSelected: {
         borderColor: primary,
         backgroundColor: primaryLighter,
+        borderWidth: 2,
     },
     truckIconContainer: {
         width: 60,
@@ -286,8 +349,50 @@ const styles = StyleSheet.create({
     footer: {
         paddingHorizontal: theme.spacing.base,
         paddingTop: theme.spacing.base,
-        paddingBottom: 110, // Extra padding to prevent overlap with bottom nav
+        paddingBottom: 120, // Increased padding to clear bottom nav
         backgroundColor: '#FFFFFF',
         ...theme.shadows.medium,
+    },
+    // Urgent Load Styles
+    urgentCard: {
+        borderColor: warning,
+        borderWidth: 1,
+        backgroundColor: 'rgba(245, 158, 11, 0.05)',
+    },
+    urgentHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: theme.spacing.xs,
+    },
+    urgentTitleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: theme.spacing.xs,
+    },
+    urgentBadge: {
+        backgroundColor: warning,
+        paddingHorizontal: theme.spacing.sm,
+        paddingVertical: 4,
+        borderRadius: 4,
+    },
+    urgentBadgeText: {
+        color: '#FFFFFF',
+        fontSize: 10,
+        fontWeight: '700',
+    },
+    urgentBenefits: {
+        marginTop: theme.spacing.sm,
+        gap: 4,
+    },
+    benefitItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    benefitText: {
+        fontSize: 11,
+        color: textSecondary,
+        fontWeight: '500',
     },
 });

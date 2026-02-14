@@ -15,7 +15,7 @@ import { theme } from '../../constants/theme';
 interface ButtonProps {
     title: string;
     onPress: () => void;
-    variant?: 'primary' | 'secondary' | 'outline' | 'gradient';
+    variant?: 'primary' | 'secondary' | 'outline' | 'gradient' | 'warning';
     disabled?: boolean;
     loading?: boolean;
     fullWidth?: boolean;
@@ -39,6 +39,7 @@ export function Button({
         variant === 'primary' && styles.primaryButton,
         variant === 'secondary' && styles.secondaryButton,
         variant === 'outline' && styles.outlineButton,
+        variant === 'warning' && styles.warningButton,
         disabled && styles.disabled,
         style,
     ];
@@ -49,6 +50,7 @@ export function Button({
         variant === 'gradient' && styles.gradientText,
         variant === 'secondary' && styles.secondaryText,
         variant === 'outline' && styles.outlineText,
+        variant === 'warning' && styles.warningText,
         textStyle,
     ];
 
@@ -115,6 +117,10 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: primary,
     },
+    warningButton: {
+        backgroundColor: '#F59E0B',
+        ...theme.shadows.medium,
+    },
     gradientButton: {
         flex: 1,
         width: '100%',
@@ -142,5 +148,9 @@ const styles = StyleSheet.create({
     },
     outlineText: {
         color: primary,
+    },
+    warningText: {
+        color: surface,
+        fontWeight: '700',
     },
 });

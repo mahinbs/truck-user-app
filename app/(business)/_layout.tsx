@@ -87,6 +87,14 @@ export default function BusinessLayout() {
                 name="tracking"
                 options={{ href: null }}
             />
+            <Tabs.Screen
+                name="booking-success"
+                options={{ href: null }}
+            />
+            <Tabs.Screen
+                name="booking-failure"
+                options={{ href: null }}
+            />
         </Tabs>
     );
 }
