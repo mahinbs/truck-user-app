@@ -70,7 +70,7 @@ export default function Onboarding1() {
                             <View style={styles.iconContainer}>
                                 <Image source={require('../../assets/images/Applogo.png')} style={styles.logoImage} resizeMode="contain" />
                             </View>
-                            <Text style={styles.titleBlue}>GISTIC</Text>
+                            <Text style={styles.titleWhite}>GISTIC</Text>
                         </View>
                         <View style={styles.cargoRow}>
                             <Text style={styles.titleWhite}>& CARG</Text>
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     },
     iconContainer: {
         flexDirection: 'row',
-        marginHorizontal: 4,
+        marginHorizontal: 0,
         alignItems: 'center',
     },
     logoImage: {

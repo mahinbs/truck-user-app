@@ -73,7 +73,7 @@ export default function Onboarding3() {
                     <View style={styles.headerTextContainer}>
                         <Text style={styles.titleHighLight}>WHY CHOOSE</Text>
                         <View style={styles.logisticRow}>
-                            <Text style={styles.titleBlue}>TRUKX</Text>
+                            <Text style={styles.titleWhite}>TRUKX</Text>
                             <Text style={styles.titleWhite}>?</Text>
                         </View>
                     </View>
