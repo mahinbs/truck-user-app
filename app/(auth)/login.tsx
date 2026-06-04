@@ -10,6 +10,7 @@ import {
     StatusBar,
     StyleSheet,
     Text,
+    TouchableOpacity,
     View,
 } from 'react-native';
 import { Button } from '../../components/shared/Button';
@@ -23,6 +24,7 @@ export default function Login() {
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [selectedRole, setSelectedRole] = useState<'business' | 'driver' | 'broker'>('business');
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(50)).current;
 
@@ -43,8 +45,14 @@ export default function Login() {
     }, []);
 
     const handleLogin = () => {
-        // For demo, navigate to business home
-        router.replace('/(business)/home');
+        router.push({
+            pathname: '/(auth)/verify-otp',
+            params: {
+                role: selectedRole,
+                email: email,
+                flow: 'login'
+            }
+        } as any);
     };
 
     return (
@@ -113,6 +121,30 @@ export default function Login() {
                                     containerStyle={styles.input}
                                 />
                                 <Text style={styles.forgotPassword}>Forgot Password?</Text>
+                            </View>
+
+                            <View style={styles.roleSelectionContainer}>
+                                <Text style={styles.roleLabel}>Sign in as</Text>
+                                <View style={styles.roleButtonsRow}>
+                                    <TouchableOpacity
+                                        style={[styles.roleSelectBtn, selectedRole === 'business' && styles.roleSelectBtnActive]}
+                                        onPress={() => setSelectedRole('business')}
+                                    >
+                                        <Text style={[styles.roleSelectBtnText, selectedRole === 'business' && styles.roleSelectBtnTextActive]}>Business</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={[styles.roleSelectBtn, selectedRole === 'driver' && styles.roleSelectBtnActive]}
+                                        onPress={() => setSelectedRole('driver')}
+                                    >
+                                        <Text style={[styles.roleSelectBtnText, selectedRole === 'driver' && styles.roleSelectBtnTextActive]}>Driver</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={[styles.roleSelectBtn, selectedRole === 'broker' && styles.roleSelectBtnActive]}
+                                        onPress={() => setSelectedRole('broker')}
+                                    >
+                                        <Text style={[styles.roleSelectBtnText, selectedRole === 'broker' && styles.roleSelectBtnTextActive]}>Broker</Text>
+                                    </TouchableOpacity>
+                                </View>
                             </View>
 
                             <Button
@@ -300,5 +332,40 @@ const styles = StyleSheet.create({
         color: Colors.light.primary,
         fontSize: 15,
         fontWeight: '700',
+    },
+    roleSelectionContainer: {
+        marginVertical: theme.spacing.sm,
+    },
+    roleLabel: {
+        fontSize: 14,
+        color: Colors.light.textSecondary,
+        fontFamily: 'PlusJakartaSans_600SemiBold',
+        marginBottom: theme.spacing.xs,
+    },
+    roleButtonsRow: {
+        flexDirection: 'row',
+        backgroundColor: '#F1F5F9',
+        borderRadius: 12,
+        padding: 4,
+        gap: 4,
+    },
+    roleSelectBtn: {
+        flex: 1,
+        paddingVertical: 10,
+        alignItems: 'center',
+        borderRadius: 8,
+    },
+    roleSelectBtnActive: {
+        backgroundColor: '#FFFFFF',
+        ...theme.shadows.light,
+    },
+    roleSelectBtnText: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: Colors.light.textSecondary,
+        fontFamily: 'PlusJakartaSans_600SemiBold',
+    },
+    roleSelectBtnTextActive: {
+        color: Colors.light.primary,
     },
 });

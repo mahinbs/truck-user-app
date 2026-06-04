@@ -18,11 +18,13 @@ export function GradientBackground({
     start = { x: 0, y: 0 },
     end = { x: 0, y: 1 },
 }: GradientBackgroundProps) {
-    const colors = theme.gradients[variant];
+    const colors = variant === 'backgroundSubtle'
+        ? theme.gradients.background
+        : (theme.gradients[variant as keyof typeof theme.gradients] || theme.gradients.background);
 
     return (
         <LinearGradient
-            colors={colors}
+            colors={colors as [string, string, ...string[]]}
             start={start}
             end={end}
             style={[styles.container, style]}

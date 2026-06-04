@@ -21,7 +21,7 @@ import { theme } from '../../constants/theme';
 
 const { height } = Dimensions.get('window');
 
-type UserRole = 'business' | 'driver' | null;
+type UserRole = 'business' | 'driver' | 'broker' | null;
 
 export default function Signup() {
     const router = useRouter();
@@ -54,11 +54,16 @@ export default function Signup() {
     };
 
     const handleSignup = () => {
-        if (selectedRole === 'business') {
-            router.replace('/(business)/home');
-        } else {
-            router.replace('/(driver)/home');
-        }
+        router.push({
+            pathname: '/(auth)/verify-otp',
+            params: {
+                role: selectedRole,
+                name: name,
+                email: email,
+                phone: phone,
+                flow: 'signup'
+            }
+        } as any);
     };
 
     return (
@@ -184,7 +189,7 @@ export default function Signup() {
                                                     selectedRole === 'driver' && styles.roleDescriptionSelected,
                                                 ]}
                                             >
-                                                Accept loads & earn money
+                                                Accept trips & drive shipments
                                             </Text>
                                         </View>
                                         <View style={[
@@ -192,6 +197,52 @@ export default function Signup() {
                                             selectedRole === 'driver' && styles.radioActive
                                         ]}>
                                             {selectedRole === 'driver' && <View style={styles.radioInner} />}
+                                        </View>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        activeOpacity={0.8}
+                                        onPress={() => handleRoleSelect('broker')}
+                                        style={[
+                                            styles.roleCard,
+                                            selectedRole === 'broker' && styles.roleCardSelected,
+                                        ]}
+                                    >
+                                        <View
+                                            style={[
+                                                styles.roleIconContainer,
+                                                selectedRole === 'broker' && styles.roleIconSelected,
+                                            ]}
+                                        >
+                                            <Ionicons
+                                                name="people"
+                                                size={32}
+                                                color={selectedRole === 'broker' ? '#FFFFFF' : Colors.light.primary}
+                                            />
+                                        </View>
+                                        <View style={styles.roleInfo}>
+                                            <Text
+                                                style={[
+                                                    styles.roleTitle,
+                                                    selectedRole === 'broker' && styles.roleTitleSelected,
+                                                ]}
+                                            >
+                                                Broker
+                                            </Text>
+                                            <Text
+                                                style={[
+                                                    styles.roleDescription,
+                                                    selectedRole === 'broker' && styles.roleDescriptionSelected,
+                                                ]}
+                                            >
+                                                Manage drivers & assign loads
+                                            </Text>
+                                        </View>
+                                        <View style={[
+                                            styles.radioCircle,
+                                            selectedRole === 'broker' && styles.radioActive
+                                        ]}>
+                                            {selectedRole === 'broker' && <View style={styles.radioInner} />}
                                         </View>
                                     </TouchableOpacity>
                                 </View>
@@ -228,7 +279,7 @@ export default function Signup() {
                                     <Text style={styles.title}>Create Account</Text>
                                     <Text style={styles.subtitle}>
                                         Enter your details to sign up as{' '}
-                                        {selectedRole === 'business' ? 'Business' : 'Driver'}
+                                        {selectedRole === 'business' ? 'Business' : selectedRole === 'driver' ? 'Driver' : 'Broker'}
                                     </Text>
                                 </View>
 
