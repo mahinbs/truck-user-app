@@ -44,8 +44,10 @@ export default function RootLayout() {
         <Stack.Screen name="(onboarding)/onboarding-3" />
         <Stack.Screen name="(auth)/login" />
         <Stack.Screen name="(auth)/signup" />
+        <Stack.Screen name="(auth)/verify-otp" />
         <Stack.Screen name="(business)" options={{ headerShown: false }} />
         <Stack.Screen name="(driver)" options={{ headerShown: false }} />
+        <Stack.Screen name="(broker)" options={{ headerShown: false }} />
       </Stack>
     </AuthProvider>
   );
