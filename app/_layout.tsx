@@ -9,6 +9,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { AuthProvider } from '../contexts/AuthContext';
+import { CreateShipmentProvider } from '../contexts/CreateShipmentContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -32,6 +33,7 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
+      <CreateShipmentProvider>
       <Stack
         screenOptions={{
           headerShown: false,
@@ -42,13 +44,15 @@ export default function RootLayout() {
         <Stack.Screen name="(onboarding)/onboarding-1" />
         <Stack.Screen name="(onboarding)/onboarding-2" />
         <Stack.Screen name="(onboarding)/onboarding-3" />
+        <Stack.Screen name="(onboarding)/verification" />
         <Stack.Screen name="(auth)/login" />
         <Stack.Screen name="(auth)/signup" />
         <Stack.Screen name="(auth)/verify-otp" />
-        <Stack.Screen name="(business)" options={{ headerShown: false }} />
-        <Stack.Screen name="(driver)" options={{ headerShown: false }} />
-        <Stack.Screen name="(broker)" options={{ headerShown: false }} />
+        <Stack.Screen name="business" options={{ headerShown: false }} />
+        <Stack.Screen name="driver" options={{ headerShown: false }} />
+        <Stack.Screen name="broker" options={{ headerShown: false }} />
       </Stack>
+      </CreateShipmentProvider>
     </AuthProvider>
   );
 }

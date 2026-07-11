@@ -18,6 +18,8 @@ import { Button } from '../../components/shared/Button';
 import { Input } from '../../components/shared/Input';
 import { Colors } from '../../constants/Colors';
 import { theme } from '../../constants/theme';
+import { useAuth } from '../../contexts/AuthContext';
+import { ApiError } from '../../utils/api';
 
 const { height } = Dimensions.get('window');
 
@@ -25,12 +27,15 @@ type UserRole = 'business' | 'driver' | 'broker' | null;
 
 export default function Signup() {
     const router = useRouter();
+    const { signUp } = useAuth();
     const [step, setStep] = useState<'role' | 'details'>('role');
     const [selectedRole, setSelectedRole] = useState<UserRole>(null);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
     // Animation for transitions
@@ -53,17 +58,42 @@ export default function Signup() {
         }
     };
 
-    const handleSignup = () => {
-        router.push({
-            pathname: '/(auth)/verify-otp',
-            params: {
-                role: selectedRole,
-                name: name,
-                email: email,
-                phone: phone,
-                flow: 'signup'
-            }
-        } as any);
+    const handleSignup = async () => {
+        if (!selectedRole) { setErrorMsg('Pick a role first'); return; }
+        if (!name.trim() || !email.trim() || !password) { setErrorMsg('Fill name, email, password'); return; }
+        if (password.length < 6) { setErrorMsg('Password must be at least 6 chars'); return; }
+        const emailTrimmed = email.trim().toLowerCase();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) {
+            setErrorMsg('Enter a valid email address');
+            return;
+        }
+        setSubmitting(true);
+        setErrorMsg(null);
+        try {
+            const upperRole = selectedRole.toUpperCase() as 'BUSINESS' | 'DRIVER' | 'BROKER';
+            await signUp({
+                role: upperRole,
+                name: name.trim(),
+                email: emailTrimmed,
+                phone: phone.trim() || undefined,
+                password,
+            });
+            // All roles confirm email via 8-digit OTP before entering the app
+            router.push({
+                pathname: '/(auth)/verify-otp',
+                params: {
+                    email: emailTrimmed,
+                    name: name.trim(),
+                    role: selectedRole,
+                    flow: 'signup',
+                },
+            } as any);
+        } catch (e: any) {
+            const m = e instanceof ApiError ? e.message : (e?.message || 'Signup failed');
+            setErrorMsg(m);
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -278,8 +308,9 @@ export default function Signup() {
                                     </TouchableOpacity>
                                     <Text style={styles.title}>Create Account</Text>
                                     <Text style={styles.subtitle}>
-                                        Enter your details to sign up as{' '}
-                                        {selectedRole === 'business' ? 'Business' : selectedRole === 'driver' ? 'Driver' : 'Broker'}
+                                        Enter your email to register as{' '}
+                                        {selectedRole === 'business' ? 'Business' : selectedRole === 'driver' ? 'Driver' : 'Broker'}.
+                                        We'll send an 8-digit verification code.
                                     </Text>
                                 </View>
 
@@ -317,13 +348,19 @@ export default function Signup() {
                                         containerStyle={styles.input}
                                     />
 
+                                    {errorMsg ? (
+                                        <Text style={{ color: '#EF4444', fontSize: 13 }}>
+                                            {errorMsg}
+                                        </Text>
+                                    ) : null}
                                     <Button
-                                        title="Create Account"
+                                        title={submitting ? 'Sending code…' : 'Create Account'}
                                         onPress={handleSignup}
                                         variant="primary"
                                         fullWidth
                                         style={styles.signupButton}
                                         textStyle={styles.buttonText}
+                                        disabled={submitting}
                                     />
 
                                     <View style={styles.loginContainer}>

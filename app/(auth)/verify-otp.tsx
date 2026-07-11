@@ -18,20 +18,24 @@ import {
     View,
 } from 'react-native';
 import { Button } from '../../components/shared/Button';
-import { Colors, primary, surface, text, textSecondary, error as errorColor } from '../../constants/Colors';
+import { primary, surface, text, textSecondary, error as errorColor } from '../../constants/Colors';
 import { theme } from '../../constants/theme';
 import { useAuth } from '../../contexts/AuthContext';
+import { ApiError } from '../../utils/api';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
+const OTP_LENGTH = 8;
 
 export default function VerifyOtp() {
     const router = useRouter();
-    const params = useLocalSearchParams<{ role?: string; phone?: string; email?: string; name?: string; flow?: string }>();
-    const { login } = useAuth();
+    const params = useLocalSearchParams<{ role?: string; email?: string; name?: string; flow?: string }>();
+    const { verifyEmailOtp, resendEmailOtp } = useAuth();
 
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [infoMsg, setInfoMsg] = useState<string | null>(null);
     const [resendTimer, setResendTimer] = useState(60);
     const [isFocused, setIsFocused] = useState(false);
 
@@ -40,11 +44,12 @@ export default function VerifyOtp() {
     const slideAnim = useRef(new Animated.Value(30)).current;
     const shakeAnim = useRef(new Animated.Value(0)).current;
 
-    const displayTarget = params.phone || params.email || 'your device';
-    const displayRole = params.role ? params.role.charAt(0).toUpperCase() + params.role.slice(1) : 'User';
+    const email = (params.email || '').trim().toLowerCase();
+    const displayRole = params.role
+        ? params.role.charAt(0).toUpperCase() + params.role.slice(1)
+        : 'User';
 
     useEffect(() => {
-        // Fade in animations
         Animated.parallel([
             Animated.timing(fadeAnim, {
                 toValue: 1,
@@ -58,7 +63,6 @@ export default function VerifyOtp() {
             }),
         ]).start();
 
-        // Resend countdown
         const timer = setInterval(() => {
             setResendTimer((prev) => (prev > 0 ? prev - 1 : 0));
         }, 1000);
@@ -66,18 +70,18 @@ export default function VerifyOtp() {
         return () => clearInterval(timer);
     }, []);
 
-    // Focus hidden input on load
     useEffect(() => {
         setTimeout(() => {
             inputRef.current?.focus();
         }, 300);
     }, []);
 
-    const triggerShake = () => {
+    const triggerShake = (message?: string) => {
         setError(true);
+        setErrorMsg(message || 'Incorrect code. Please check and try again.');
         setOtp('');
         inputRef.current?.focus();
-        
+
         Animated.sequence([
             Animated.timing(shakeAnim, { toValue: 10, duration: 80, useNativeDriver: true }),
             Animated.timing(shakeAnim, { toValue: -10, duration: 80, useNativeDriver: true }),
@@ -88,53 +92,43 @@ export default function VerifyOtp() {
     };
 
     const handleVerify = async () => {
-        if (otp.length < 6) return;
+        if (otp.length < OTP_LENGTH || !email) return;
 
         setLoading(true);
         setError(false);
+        setErrorMsg(null);
+        setInfoMsg(null);
 
-        // Simulate OTP verification delay
-        setTimeout(async () => {
-            if (otp === '123456') {
-                try {
-                    const mappedRole = (params.role || 'business').toUpperCase() as 'BUSINESS' | 'DRIVER' | 'BROKER';
-                    
-                    await login('mock_token_' + Date.now(), {
-                        id: 'usr_' + Date.now(),
-                        name: params.name || (params.role === 'broker' ? 'Express Broker' : mappedRole === 'DRIVER' ? 'Amit Sharma' : 'Business User'),
-                        email: params.email || 'user@example.com',
-                        phone: params.phone || '9876543210',
-                        role: mappedRole,
-                        isOnline: mappedRole === 'DRIVER' ? true : undefined,
-                    });
-
-                    // Navigate to appropriate home directory based on role
-                    if (mappedRole === 'BUSINESS') {
-                        router.replace('/(business)/home');
-                    } else if (mappedRole === 'DRIVER') {
-                        router.replace('/(driver)/home');
-                    } else if (mappedRole === 'BROKER') {
-                        router.replace('/(broker)/home' as any);
-                    }
-                } catch (err) {
-                    console.error('Failed to log in:', err);
-                    triggerShake();
-                } finally {
-                    setLoading(false);
-                }
+        try {
+            const user = await verifyEmailOtp(email, otp);
+            if (user.role === 'BUSINESS') {
+                router.replace('/business/home');
+            } else if (user.role === 'DRIVER' || user.role === 'BROKER') {
+                router.replace('/(onboarding)/verification' as any);
             } else {
-                setLoading(false);
-                triggerShake();
+                router.replace('/(auth)/login');
             }
-        }, 1200);
+        } catch (err: any) {
+            const m = err instanceof ApiError ? err.message : (err?.message || 'Verification failed');
+            triggerShake(m);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleResend = () => {
-        if (resendTimer === 0) {
+    const handleResend = async () => {
+        if (resendTimer > 0 || !email) return;
+        setError(false);
+        setErrorMsg(null);
+        setOtp('');
+        try {
+            const msg = await resendEmailOtp(email);
+            setInfoMsg(msg);
             setResendTimer(60);
-            setError(false);
-            setOtp('');
             inputRef.current?.focus();
+        } catch (err: any) {
+            const m = err instanceof ApiError ? err.message : (err?.message || 'Could not resend code');
+            setErrorMsg(m);
         }
     };
 
@@ -144,10 +138,10 @@ export default function VerifyOtp() {
 
     const renderOtpBoxes = () => {
         const boxes = [];
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < OTP_LENGTH; i++) {
             const char = otp[i] || '';
             const isActive = i === otp.length && isFocused;
-            
+
             boxes.push(
                 <TouchableOpacity
                     key={i}
@@ -173,7 +167,6 @@ export default function VerifyOtp() {
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" />
 
-            {/* Top decorative highway image */}
             <View style={styles.topDecoration}>
                 <LinearGradient
                     colors={['rgba(255, 255, 255, 0.1)', '#FFFFFF']}
@@ -202,7 +195,6 @@ export default function VerifyOtp() {
                         showsVerticalScrollIndicator={false}
                         keyboardShouldPersistTaps="handled"
                     >
-                        {/* pulsing verification icon */}
                         <Animated.View
                             style={[
                                 styles.iconContainer,
@@ -213,11 +205,10 @@ export default function VerifyOtp() {
                             ]}
                         >
                             <View style={styles.iconCircle}>
-                                <Ionicons name="shield-checkmark-outline" size={48} color={primary} />
+                                <Ionicons name="mail-outline" size={48} color={primary} />
                             </View>
                         </Animated.View>
 
-                        {/* main OTP card */}
                         <Animated.View
                             style={[
                                 styles.cardWrapper,
@@ -231,48 +222,49 @@ export default function VerifyOtp() {
                             ]}
                         >
                             <BlurView intensity={20} tint="light" style={styles.glassCard}>
-                                <Text style={styles.title}>Verification Code</Text>
+                                <Text style={styles.title}>Verify your email</Text>
                                 <Text style={styles.subtitle}>
-                                    We sent a 6-digit confirmation code for your{' '}
+                                    Enter the 8-digit code we sent for your{' '}
                                     <Text style={styles.boldText}>{displayRole}</Text> account to:{'\n'}
-                                    <Text style={styles.highlightText}>{displayTarget}</Text>
+                                    <Text style={styles.highlightText}>{email || 'your email'}</Text>
                                 </Text>
 
-                                {/* Hidden text input underlay */}
                                 <TextInput
                                     ref={inputRef}
                                     value={otp}
                                     onChangeText={(text) => {
-                                        if (text.length <= 6) {
-                                            setOtp(text.replace(/[^0-9]/g, ''));
-                                            if (error) setError(false);
+                                        const cleaned = text.replace(/[^0-9]/g, '').slice(0, OTP_LENGTH);
+                                        setOtp(cleaned);
+                                        if (error) {
+                                            setError(false);
+                                            setErrorMsg(null);
                                         }
                                     }}
                                     onBlur={() => setIsFocused(false)}
                                     onFocus={() => setIsFocused(true)}
                                     keyboardType="number-pad"
-                                    maxLength={6}
+                                    maxLength={OTP_LENGTH}
                                     style={styles.hiddenInput}
                                     textContentType="oneTimeCode"
                                     autoComplete="one-time-code"
                                     onSubmitEditing={handleVerify}
                                 />
 
-                                {/* Render styled boxes */}
                                 <View style={styles.otpGrid}>
                                     {renderOtpBoxes()}
                                 </View>
 
-                                {error && (
-                                    <Text style={styles.errorText}>
-                                        Incorrect code. Please check and try again.
-                                    </Text>
-                                )}
+                                {errorMsg ? (
+                                    <Text style={styles.errorText}>{errorMsg}</Text>
+                                ) : null}
+                                {infoMsg ? (
+                                    <Text style={styles.infoText}>{infoMsg}</Text>
+                                ) : null}
 
                                 <View style={styles.infoAlert}>
                                     <Ionicons name="information-circle-outline" size={16} color={primary} />
                                     <Text style={styles.infoAlertText}>
-                                        Demo Verification Code is <Text style={styles.boldText}>123456</Text>
+                                        Check your inbox for the Trukx verification email
                                     </Text>
                                 </View>
 
@@ -282,7 +274,7 @@ export default function VerifyOtp() {
                                     variant="primary"
                                     fullWidth
                                     loading={loading}
-                                    disabled={otp.length < 6}
+                                    disabled={otp.length < OTP_LENGTH || !email}
                                     style={styles.verifyBtn}
                                 />
 
@@ -353,7 +345,7 @@ const styles = StyleSheet.create({
     },
     cardWrapper: {
         width: '100%',
-        maxWidth: 400,
+        maxWidth: 420,
         borderRadius: 28,
         backgroundColor: surface,
         ...theme.shadows.strong,
@@ -390,20 +382,21 @@ const styles = StyleSheet.create({
     },
     hiddenInput: {
         position: 'absolute',
-        width: 0,
-        height: 0,
+        width: 1,
+        height: 1,
         opacity: 0,
     },
     otpGrid: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginBottom: theme.spacing.md,
-        gap: 8,
+        gap: 4,
     },
     otpBox: {
         flex: 1,
-        height: 52,
-        borderRadius: 12,
+        height: 48,
+        minWidth: 32,
+        borderRadius: 10,
         borderWidth: 1,
         borderColor: '#E2E8F0',
         backgroundColor: '#F8FAFC',
@@ -422,7 +415,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#FEF2F2',
     },
     otpBoxText: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: '700',
         color: text,
         fontFamily: 'PlusJakartaSans_700Bold',
@@ -432,7 +425,7 @@ const styles = StyleSheet.create({
     },
     cursor: {
         width: 2,
-        height: 20,
+        height: 18,
         backgroundColor: primary,
         position: 'absolute',
     },
@@ -440,7 +433,14 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: errorColor,
         textAlign: 'center',
-        marginBottom: theme.spacing.md,
+        marginBottom: theme.spacing.sm,
+        fontFamily: 'PlusJakartaSans_500Medium',
+    },
+    infoText: {
+        fontSize: 12,
+        color: primary,
+        textAlign: 'center',
+        marginBottom: theme.spacing.sm,
         fontFamily: 'PlusJakartaSans_500Medium',
     },
     infoAlert: {
@@ -458,6 +458,7 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: primary,
         fontFamily: 'PlusJakartaSans_500Medium',
+        flexShrink: 1,
     },
     verifyBtn: {
         borderRadius: 16,
@@ -467,6 +468,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
+        flexWrap: 'wrap',
     },
     resendLabel: {
         fontSize: 13,

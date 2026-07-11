@@ -2,6 +2,9 @@
 
 # dependencies
 node_modules/
+.npm/
+.yarn/
+.pnpm-store/
 
 # Expo
 .expo/
@@ -22,18 +25,20 @@ expo-env.d.ts
 # Metro
 .metro-health-check*
 
-# debug
+# debug / package manager logs
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+pnpm-debug.*
 
 # macOS
 .DS_Store
 *.pem
 
-# local env files
-.env*.local
+# local env files / secrets
 .env
+.env.*
+!.env.example
 
 # typescript
 *.tsbuildinfo
@@ -51,6 +56,8 @@ app-example
 *.swo
 *~
 
-# Logs
+# Logs / caches
 logs
 *.log
+.cache/
+.tmp/

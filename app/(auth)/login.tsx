@@ -17,14 +17,19 @@ import { Button } from '../../components/shared/Button';
 import { Input } from '../../components/shared/Input';
 import { Colors } from '../../constants/Colors';
 import { theme } from '../../constants/theme';
+import { useAuth } from '../../contexts/AuthContext';
+import { api, ApiError } from '../../utils/api';
 
 const { height, width } = Dimensions.get('window');
 
 export default function Login() {
     const router = useRouter();
+    const { signIn } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [selectedRole, setSelectedRole] = useState<'business' | 'driver' | 'broker'>('business');
+    const [submitting, setSubmitting] = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(50)).current;
 
@@ -44,15 +49,57 @@ export default function Login() {
         ]).start();
     }, []);
 
-    const handleLogin = () => {
-        router.push({
-            pathname: '/(auth)/verify-otp',
-            params: {
-                role: selectedRole,
-                email: email,
-                flow: 'login'
+    const handleForgotPassword = async () => {
+        if (!email.trim()) {
+            setErrorMsg('Enter your email first');
+            return;
+        }
+        try {
+            const res = await api.forgotPassword(email.trim());
+            setErrorMsg(res.message || 'If the email exists, a reset link was sent.');
+        } catch (e: any) {
+            setErrorMsg(e instanceof ApiError ? e.message : (e?.message || 'Request failed'));
+        }
+    };
+
+    const handleLogin = async () => {
+        if (!email.trim() || !password) {
+            setErrorMsg('Enter email and password');
+            return;
+        }
+        setSubmitting(true);
+        setErrorMsg(null);
+        try {
+            const user = await signIn(email.trim(), password);
+            // Frontend role mismatch warning (the role tab is just a hint; real role comes from the user record)
+            const dest =
+                user.role === 'BUSINESS' ? '/business/home' :
+                user.role === 'DRIVER'   ? '/driver/home' :
+                user.role === 'BROKER'   ? '/broker/home' :
+                '/(onboarding)/onboarding-1';
+            router.replace(dest as any);
+        } catch (e: any) {
+            const m = e instanceof ApiError ? e.message : (e?.message || 'Login failed');
+            if (typeof m === 'string' && m.toLowerCase().includes('email not verified')) {
+                try {
+                    await api.resendOtp(email.trim().toLowerCase());
+                } catch {
+                    // still send them to OTP screen
+                }
+                router.push({
+                    pathname: '/(auth)/verify-otp',
+                    params: {
+                        email: email.trim().toLowerCase(),
+                        role: selectedRole,
+                        flow: 'login',
+                    },
+                } as any);
+                return;
             }
-        } as any);
+            setErrorMsg(m);
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -120,7 +167,9 @@ export default function Login() {
                                     secureTextEntry
                                     containerStyle={styles.input}
                                 />
-                                <Text style={styles.forgotPassword}>Forgot Password?</Text>
+                                <TouchableOpacity onPress={handleForgotPassword}>
+                                    <Text style={styles.forgotPassword}>Forgot Password?</Text>
+                                </TouchableOpacity>
                             </View>
 
                             <View style={styles.roleSelectionContainer}>
@@ -147,13 +196,19 @@ export default function Login() {
                                 </View>
                             </View>
 
+                            {errorMsg ? (
+                                <Text style={{ color: '#EF4444', fontSize: 13, marginTop: 4 }}>
+                                    {errorMsg}
+                                </Text>
+                            ) : null}
                             <Button
-                                title="Sign In"
+                                title={submitting ? 'Signing in…' : 'Sign In'}
                                 onPress={handleLogin}
                                 variant="primary"
                                 fullWidth
                                 style={styles.loginButton}
                                 textStyle={styles.loginButtonText}
+                                disabled={submitting}
                             />
 
                             <View style={styles.dividerContainer}>
