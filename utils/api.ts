@@ -15,7 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const DEFAULT_BASE =
   (process.env.EXPO_PUBLIC_API_BASE_URL as string | undefined) ||
-  'http://127.0.0.1:8000/api/v1';
+  'https://trucks-backend-9s2j.onrender.com/api/v1';
 
 let _base = DEFAULT_BASE;
 
