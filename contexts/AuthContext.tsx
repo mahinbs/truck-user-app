@@ -97,17 +97,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(merged));
           await AsyncStorage.setItem(STORAGE_KEYS.ROLE, merged.role || '');
           setUser(merged);
-        } catch {
-          // Only fall back to saved role when offline; never override API role
+          setIsAuthenticated(true);
+        } catch (e: any) {
+          // Expired/invalid token: stay logged out (hardLogout may already have run on 401).
+          if (e instanceof ApiError && e.status === 401) {
+            setUser(null);
+            setIsAuthenticated(false);
+            return;
+          }
+          // Network / offline: keep cached session so the app can still open.
           if (!userData.role && savedRole) {
             userData.role = savedRole as UserRole;
           }
           setUser(userData);
+          setIsAuthenticated(true);
         }
-        setIsAuthenticated(true);
       } else if (savedRole) {
-        // If no user but role is saved, set user with role
+        // Role hint only (not a real session) — used for first-run UX, not auth.
         setUser({ id: '', name: '', email: '', phone: '', role: savedRole as UserRole });
+        setIsAuthenticated(false);
       }
     } catch (error) {
       console.error('Auth check failed:', error);

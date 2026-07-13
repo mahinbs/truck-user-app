@@ -3,18 +3,27 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Dimensions, StyleSheet, Text, View } from 'react-native';
 import { theme } from '../constants/theme';
+import { useAuth } from '../contexts/AuthContext';
 
 const { width } = Dimensions.get('window');
 
+function homeForRole(role: string | null | undefined): string {
+  if (role === 'BUSINESS') return '/business/home';
+  if (role === 'DRIVER') return '/driver/home';
+  if (role === 'BROKER') return '/broker/home';
+  return '/(auth)/login';
+}
+
 export default function Index() {
   const router = useRouter();
+  const { user, isLoading, isAuthenticated } = useAuth();
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const textAnim = useRef(new Animated.Value(0)).current;
+  const navigated = useRef(false);
 
   useEffect(() => {
     Animated.sequence([
-      // Logo Fade In & Scale Up
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
@@ -28,18 +37,28 @@ export default function Index() {
           useNativeDriver: true,
         }),
       ]),
-      // Text Slide Up
       Animated.timing(textAnim, {
         toValue: 1,
         duration: 800,
         useNativeDriver: true,
       }),
-      // Wait
-      Animated.delay(1000),
-    ]).start(() => {
-      router.replace('/(onboarding)/onboarding-1');
-    });
+      Animated.delay(600),
+    ]).start();
   }, []);
+
+  useEffect(() => {
+    if (isLoading || navigated.current) return;
+    const t = setTimeout(() => {
+      if (navigated.current) return;
+      navigated.current = true;
+      if (isAuthenticated && user?.id && user.role) {
+        router.replace(homeForRole(user.role) as any);
+      } else {
+        router.replace('/(onboarding)/onboarding-1');
+      }
+    }, 1800);
+    return () => clearTimeout(t);
+  }, [isLoading, isAuthenticated, user, router]);
 
   return (
     <View style={styles.container}>

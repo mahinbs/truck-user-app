@@ -47,10 +47,22 @@ export default function BrokerEarnings() {
         try {
             const w = await api.wallet();
             setWalletBalance(w.balance);
-            const d = await api.brokerEarningsSummary() as Dashboard;
-            setDashboard(d);
+            const periodKey = period === 'today' ? 'day' : period === 'week' ? 'week' : 'month';
+            // Summary dashboard (driver pool + totals) plus period slice for the header figure.
+            const [d, periodSlice] = await Promise.all([
+                api.brokerEarningsSummary() as Promise<Dashboard>,
+                api.brokerEarningsByPeriod(periodKey).catch(() => null),
+            ]);
+            if (periodSlice && typeof (periodSlice as any).total === 'number') {
+                setDashboard({
+                    ...d,
+                    totalBrokerEarnings: (periodSlice as any).total,
+                });
+            } else {
+                setDashboard(d);
+            }
         } catch (e) { console.warn('broker earnings load failed', e); }
-    }, []);
+    }, [period]);
 
     useEffect(() => { load(); }, [load]);
 

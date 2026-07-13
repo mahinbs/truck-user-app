@@ -96,7 +96,18 @@ export async function request<T = any>(path: string, opts: ReqOpts = {}): Promis
   if (!res.ok) {
     if (res.status === 401 && _onUnauthorized) _onUnauthorized();
     const detail = payload?.detail ?? payload;
-    const msg = typeof detail === 'string' ? detail : `request failed (${res.status})`;
+    let msg = `request failed (${res.status})`;
+    if (typeof detail === 'string') {
+      msg = detail;
+    } else if (Array.isArray(detail)) {
+      // FastAPI validation errors: [{loc, msg, type}, ...]
+      msg = detail
+        .map((d: any) => (typeof d === 'string' ? d : d?.msg || JSON.stringify(d)))
+        .filter(Boolean)
+        .join('; ') || msg;
+    } else if (detail && typeof detail === 'object' && typeof (detail as any).msg === 'string') {
+      msg = (detail as any).msg;
+    }
     throw new ApiError(res.status, detail, msg);
   }
 

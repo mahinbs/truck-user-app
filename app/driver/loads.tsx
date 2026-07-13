@@ -62,8 +62,11 @@ export default function Loads() {
                     raw: o,
                 })));
             } else {
-                const status = activeTab === 'active' ? 'en_route_drop' : 'delivered';
-                const trips = await api.driverTrips(status) as any[];
+                // Active trips start as en_route_pickup → at_pickup → en_route_drop.
+                // Fetch all (or delivered only) then filter client-side.
+                const trips = await api.driverTrips(
+                  activeTab === 'completed' ? 'delivered' : undefined,
+                ) as any[];
                 const list = activeTab === 'active'
                     ? trips.filter((t) => t.status !== 'delivered')
                     : trips.filter((t) => t.status === 'delivered');

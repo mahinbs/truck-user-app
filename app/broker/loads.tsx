@@ -99,6 +99,7 @@ export default function LoadBoard() {
     const getFilteredLoads = () => {
         if (filter === 'all') return opps;
         if (filter === 'high') return opps.filter(o => o.brokerCommission >= 500);
+        // "Near Me" / urgent tab: show urgent opportunities (no geo radius from API yet)
         return opps.filter(o => o.isUrgent);
     };
 
@@ -197,7 +198,7 @@ export default function LoadBoard() {
                         onPress={() => setFilter('near')}
                     >
                         <Text style={[styles.filterTabText, filter === 'near' && styles.filterTabTextActive]}>
-                            Near Me
+                            Urgent
                         </Text>
                     </TouchableOpacity>
                 </View>

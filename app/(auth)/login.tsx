@@ -70,7 +70,7 @@ export default function Login() {
         setSubmitting(true);
         setErrorMsg(null);
         try {
-            const user = await signIn(email.trim(), password);
+            const user = await signIn(email.trim().toLowerCase(), password);
             // Frontend role mismatch warning (the role tab is just a hint; real role comes from the user record)
             const dest =
                 user.role === 'BUSINESS' ? '/business/home' :

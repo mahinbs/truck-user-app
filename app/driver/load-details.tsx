@@ -165,7 +165,6 @@ export default function LoadDetails() {
                                         <View style={styles.pointContent}>
                                             <Text style={styles.locationLabel}>Pickup</Text>
                                             <Text style={styles.locationText}>{pickup}</Text>
-                                            <Text style={styles.timeText}>Tomorrow, 10:00 AM</Text>
                                         </View>
                                     </View>
 
@@ -180,7 +179,6 @@ export default function LoadDetails() {
                                         <View style={styles.pointContent}>
                                             <Text style={styles.locationLabel}>Drop</Text>
                                             <Text style={styles.locationText}>{drop}</Text>
-                                            <Text style={styles.timeText}>Est. Dec 17, 8:00 PM</Text>
                                         </View>
                                     </View>
                                 </View>
@@ -197,7 +195,9 @@ export default function LoadDetails() {
                                         </LinearGradient>
                                         <View>
                                             <Text style={styles.infoLabel}>Distance</Text>
-                                            <Text style={styles.infoValue}>1,450 km</Text>
+                                            <Text style={styles.infoValue}>
+                                              {params.distanceKm ? `${params.distanceKm} km` : '—'}
+                                            </Text>
                                         </View>
                                     </View>
                                     <View style={styles.infoItem}>
@@ -209,7 +209,9 @@ export default function LoadDetails() {
                                         </LinearGradient>
                                         <View>
                                             <Text style={styles.infoLabel}>Weight</Text>
-                                            <Text style={styles.infoValue}>8 Tons</Text>
+                                            <Text style={styles.infoValue}>
+                                              {params.weightKg ? `${params.weightKg} kg` : '—'}
+                                            </Text>
                                         </View>
                                     </View>
                                 </View>
