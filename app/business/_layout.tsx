@@ -98,6 +98,7 @@ export default function BusinessLayout() {
                 options={{ href: null }}
             />
             <Tabs.Screen name="payment-methods" options={{ href: null }} />
+            <Tabs.Screen name="edit-profile" options={{ href: null }} />
             <Tabs.Screen name="company-details" options={{ href: null }} />
             <Tabs.Screen name="settings" options={{ href: null }} />
             <Tabs.Screen name="help" options={{ href: null }} />

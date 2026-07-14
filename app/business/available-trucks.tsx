@@ -26,7 +26,8 @@ type NearbyDriver = {
     ratingAvg: number;
     truckType?: string | null;
     truckNumber?: string | null;
-    distanceKm: number;
+    distanceKm: number | null;
+    isOnline?: boolean;
 };
 
 export default function AvailableTrucks() {
@@ -88,6 +89,21 @@ export default function AvailableTrucks() {
         setRefreshing(false);
     }, [load]);
 
+    const bookWithPayload = async () => {
+        const created: any = await api.createShipment({
+            ...draftToShipmentPayload(draft),
+            preferredDriverId: selectedDriverId,
+        });
+        reset();
+        router.replace({
+            pathname: '/business/booking-success',
+            params: {
+                id: created.id,
+                driverName: selectedDriver?.name || 'Driver',
+            },
+        } as any);
+    };
+
     const handleBook = async () => {
         setErrorMsg(null);
         if (!selectedDriverId) {
@@ -104,18 +120,17 @@ export default function AvailableTrucks() {
         }
         setBooking(true);
         try {
-            const created: any = await api.createShipment({
-                ...draftToShipmentPayload(draft),
-                preferredDriverId: selectedDriverId,
-            });
-            reset();
-            router.replace({
-                pathname: '/business/booking-success',
-                params: {
-                    id: created.id,
-                    driverName: selectedDriver?.name || 'Driver',
-                },
-            } as any);
+            try {
+                await bookWithPayload();
+            } catch (e: any) {
+                // Dummy payment path: auto top-up then retry once on 402
+                if (e instanceof ApiError && e.status === 402) {
+                    await api.topupDummy(50000);
+                    await bookWithPayload();
+                } else {
+                    throw e;
+                }
+            }
         } catch (e: any) {
             if (e instanceof ApiError && e.status === 402) {
                 Alert.alert(
@@ -137,7 +152,7 @@ export default function AvailableTrucks() {
                     <Ionicons name="arrow-back" size={24} color={text} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>
-                    {isUrgent ? 'Urgent Trucks' : 'Nearby Drivers'}
+                    {isUrgent ? 'Urgent Trucks' : 'Available Drivers'}
                 </Text>
                 <View style={styles.placeholder} />
             </View>
@@ -149,11 +164,13 @@ export default function AvailableTrucks() {
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             >
                 <Text style={styles.resultsText}>
-                    {loading ? 'Loading…' : `${drivers.length} drivers within 25 km · tap to select`}
+                    {loading
+                        ? 'Loading…'
+                        : `${drivers.length} registered drivers · tap to select`}
                 </Text>
                 {searchCoords && !loading ? (
                     <Text style={styles.coordsText}>
-                        Pickup synced to online driver · {searchCoords.lat.toFixed(4)}, {searchCoords.lng.toFixed(4)}
+                        Matching from pickup · {searchCoords.lat.toFixed(4)}, {searchCoords.lng.toFixed(4)}
                     </Text>
                 ) : null}
                 {locationErr && !loading ? (
@@ -164,11 +181,16 @@ export default function AvailableTrucks() {
                     <ActivityIndicator size="large" color={primary} style={{ marginTop: 32 }} />
                 ) : drivers.length === 0 ? (
                     <Text style={{ textAlign: 'center', color: textSecondary, marginTop: 24, paddingHorizontal: 16 }}>
-                        No online drivers within 25 km for this truck type.{'\n'}
-                        Ask the driver to toggle online (with location) and match the same truck category.
+                        No registered drivers for this truck type yet.{'\n'}
+                        Drivers must sign up and complete email verification to appear here.
                     </Text>
                 ) : drivers.map((driver) => {
                     const selected = selectedDriverId === driver.id;
+                    const online = !!driver.isOnline;
+                    const hasDistance =
+                        driver.distanceKm != null &&
+                        Number.isFinite(driver.distanceKm) &&
+                        driver.distanceKm < 9000;
                     return (
                         <TouchableOpacity
                             key={driver.id}
@@ -185,12 +207,21 @@ export default function AvailableTrucks() {
                                                 <View style={styles.radioInner} />
                                             </View>
                                         )}
-                                        <Text style={styles.driverName}>{driver.name}</Text>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={styles.driverName}>{driver.name}</Text>
+                                            <View style={styles.statusRow}>
+                                                <View style={[styles.dot, { backgroundColor: online ? '#10B981' : '#94A3B8' }]} />
+                                                <Text style={styles.statusText}>{online ? 'Online' : 'Offline'}</Text>
+                                            </View>
+                                        </View>
                                     </View>
                                     <Text style={styles.rating}>★ {driver.ratingAvg.toFixed(1)}</Text>
                                 </View>
                                 <Text style={[styles.meta, { marginLeft: 30 }]}>
-                                    {driver.truckType || truckType} · {driver.distanceKm.toFixed(1)} km away
+                                    {driver.truckType || truckType}
+                                    {hasDistance
+                                        ? ` · ${Number(driver.distanceKm).toFixed(1)} km away`
+                                        : ' · distance unknown'}
                                 </Text>
                                 {driver.truckNumber ? (
                                     <Text style={[styles.meta, { marginLeft: 30 }]}>{driver.truckNumber}</Text>
@@ -217,7 +248,7 @@ export default function AvailableTrucks() {
                     <Text style={styles.footerHint}>Select a driver above</Text>
                 )}
                 <Button
-                    title={booking ? 'Booking…' : 'Confirm & Book'}
+                    title={booking ? 'Confirming…' : 'Confirm & Pay'}
                     onPress={handleBook}
                     fullWidth
                     loading={booking}
@@ -262,6 +293,9 @@ const styles = StyleSheet.create({
     driverHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     driverTitleRow: { flexDirection: 'row', alignItems: 'center', flex: 1 },
     driverName: { fontSize: 16, fontWeight: '700', color: text },
+    statusRow: { flexDirection: 'row', alignItems: 'center', marginTop: 2 },
+    dot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
+    statusText: { fontSize: 12, color: textSecondary },
     rating: { color: warning, fontWeight: '600' },
     meta: { color: textSecondary, marginTop: 4, fontSize: 13 },
     radioOuter: {

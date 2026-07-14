@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ProfileEditor, useProfileActions } from '../../components/shared/ProfileEditor';
+import { useProfileActions } from '../../components/shared/ProfileEditor';
 import { payoutSummary } from '../../components/shared/PayoutAccountForm';
 import { api, ApiUser } from '../../utils/api';
 import {
@@ -22,7 +22,7 @@ const { width } = Dimensions.get('window');
 
 export default function Profile() {
     const router = useRouter();
-    const { user, editOpen, setEditOpen, handleLogout, initials } = useProfileActions();
+    const { user, handleLogout, initials } = useProfileActions();
     const [profile, setProfile] = useState<ApiUser | null>(null);
     const [stats, setStats] = useState({ total: 0, completed: 0, active: 0 });
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -96,7 +96,7 @@ export default function Profile() {
                 <View style={styles.header}>
                     <View style={styles.iconButton} />
                     <Text style={styles.headerTitle}>Profile</Text>
-                    <TouchableOpacity style={styles.iconButton} onPress={() => setEditOpen(true)}>
+                    <TouchableOpacity style={styles.iconButton} onPress={() => router.push('/business/edit-profile' as any)}>
                         <Ionicons name="create-outline" size={24} color={Colors.light.primary} />
                     </TouchableOpacity>
                 </View>
@@ -164,8 +164,8 @@ export default function Profile() {
                         <View style={styles.section}>
                             <Text style={styles.sectionTitle}>Account Settings</Text>
                             <View style={styles.menuContainer}>
-                                <MenuItem icon="person-outline" label="Edit Profile" subLabel="Name & phone" onPress={() => setEditOpen(true)} />
-                                <MenuItem icon="business-outline" label="Company Details" subLabel={profile?.gstin || 'GSTIN & billing address'} onPress={() => router.push('/business/company-details' as any)} />
+                                <MenuItem icon="person-outline" label="Edit Profile" subLabel="Contact, company & address" onPress={() => router.push('/business/edit-profile' as any)} />
+                                <MenuItem icon="business-outline" label="Company Details" subLabel={profile?.gstin || profile?.companyName || 'GSTIN & billing address'} onPress={() => router.push('/business/company-details' as any)} />
                                 <MenuItem icon="shield-checkmark-outline" label="Security & Privacy" onPress={() => router.push('/business/security' as any)} />
                                 <MenuItem icon="notifications-outline" label="Notifications" onPress={() => router.push('/business/notifications' as any)} />
                                 <MenuItem
@@ -198,7 +198,6 @@ export default function Profile() {
                     </Animated.View>
                 </ScrollView>
             </SafeAreaView>
-            <ProfileEditor visible={editOpen} onClose={() => setEditOpen(false)} />
         </View>
     );
 }

@@ -57,6 +57,11 @@ function formatInr(n: number) {
     return `₹${Math.round(n).toLocaleString('en-IN')}`;
 }
 
+function toLocalDatetimeValue(d: Date): string {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 type Quote = {
     basePrice?: number;
     insurancePct?: number;
@@ -368,7 +373,7 @@ export default function CreateShipmentStep3() {
                 />
             ) : null}
 
-            {Platform.OS === 'ios' || Platform.OS === 'web' ? (
+            {Platform.OS === 'ios' ? (
                 <Modal
                     visible={showPickupPicker}
                     transparent
@@ -385,10 +390,55 @@ export default function CreateShipmentStep3() {
                             <DateTimePicker
                                 value={pickupAt}
                                 mode="datetime"
-                                display={Platform.OS === 'web' ? 'default' : 'spinner'}
+                                display="spinner"
                                 minimumDate={new Date(Date.now() + 30 * 60 * 1000)}
                                 onChange={onPickupChange}
                             />
+                        </View>
+                    </View>
+                </Modal>
+            ) : null}
+
+            {Platform.OS === 'web' ? (
+                <Modal
+                    visible={showPickupPicker}
+                    transparent
+                    animationType="slide"
+                    onRequestClose={() => setShowPickupPicker(false)}
+                >
+                    <View style={styles.pickerBackdrop}>
+                        <View style={styles.pickerSheet}>
+                            <View style={styles.pickerHeader}>
+                                <TouchableOpacity onPress={() => setShowPickupPicker(false)}>
+                                    <Text style={styles.pickerDone}>Done</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <View style={styles.webPickerBody}>
+                                <Text style={styles.webPickerLabel}>Pickup date & time</Text>
+                                {/* @ts-expect-error web-only datetime-local */}
+                                <input
+                                    type="datetime-local"
+                                    value={toLocalDatetimeValue(pickupAt)}
+                                    min={toLocalDatetimeValue(new Date(Date.now() + 30 * 60 * 1000))}
+                                    onChange={(e: any) => {
+                                        const v = e?.target?.value;
+                                        if (!v) return;
+                                        const parsed = new Date(v);
+                                        if (!Number.isNaN(parsed.getTime())) {
+                                            const min = new Date(Date.now() + 30 * 60 * 1000);
+                                            setPickupAt(parsed < min ? min : parsed);
+                                        }
+                                    }}
+                                    style={{
+                                        fontSize: 16,
+                                        padding: 12,
+                                        borderRadius: 8,
+                                        border: '1px solid #E2E8F0',
+                                        width: '100%',
+                                        boxSizing: 'border-box',
+                                    }}
+                                />
+                            </View>
                         </View>
                     </View>
                 </Modal>
@@ -589,6 +639,16 @@ const styles = StyleSheet.create({
         color: primary,
         fontWeight: '600',
         fontSize: 16,
+    },
+    webPickerBody: {
+        paddingHorizontal: theme.spacing.base,
+        paddingBottom: theme.spacing.lg,
+        gap: 8,
+    },
+    webPickerLabel: {
+        ...theme.typography.bodyMedium,
+        color: text,
+        marginBottom: 4,
     },
     optionLeft: {
         flexDirection: 'row',

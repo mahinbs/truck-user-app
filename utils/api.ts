@@ -143,6 +143,10 @@ export interface ApiUser {
   companyName?: string | null;
   gstin?: string | null;
   billingAddress?: string | null;
+  contactPerson?: string | null;
+  city?: string | null;
+  state?: string | null;
+  pincode?: string | null;
   agencyName?: string | null;
 }
 
@@ -195,6 +199,7 @@ export const api = {
     truckType: string; truckNumber: string; licenseNumber: string;
     payoutDetails: Record<string, unknown>;
     companyName: string; gstin: string; billingAddress: string;
+    contactPerson: string; city: string; state: string; pincode: string;
     agencyName: string;
   }>) => request<ApiUser>('/auth/me', { method: 'PATCH', body }),
 
